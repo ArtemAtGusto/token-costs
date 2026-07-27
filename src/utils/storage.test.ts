@@ -85,7 +85,8 @@ describe('snapshot storage', () => {
       const after = await fs.readdir(path.join(process.cwd(), 'history', provider));
       const archive = after.find(file => !before.has(file));
       expect(archive).toBeDefined();
-      await expect(fs.readFile(path.join(process.cwd(), 'history', provider, archive!), 'utf-8')).resolves.toBe(original);
+      const archived = JSON.parse(await fs.readFile(path.join(process.cwd(), 'history', provider, archive!), 'utf-8'));
+      expect(archived).toEqual(snapshot);
     } finally {
       await fs.writeFile(currentPath, original);
       const after = await fs.readdir(path.join(process.cwd(), 'history', provider));
