@@ -76,11 +76,6 @@
       "input": 3,
       "output": 15,
       "cached": 0.3
-    },
-    "claude-haiku-3.5": {
-      "input": 0.8,
-      "output": 4,
-      "cached": 0.08
     }
   }
 }

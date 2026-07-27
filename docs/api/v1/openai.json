@@ -242,12 +242,6 @@
       "output": 14,
       "cached": 0.175,
       "cacheWrite": 0
-    },
-    "gpt-4.1": {
-      "input": 2,
-      "output": 8,
-      "cached": 0.5,
-      "cacheWrite": 0
     }
   }
 }

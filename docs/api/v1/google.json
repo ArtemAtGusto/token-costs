@@ -64,11 +64,6 @@
       "input": 1.5,
       "output": 9,
       "cached": 14
-    },
-    "gemini-3.5-flash-lite": {
-      "input": 0.3,
-      "output": 2.5,
-      "cached": 14
     }
   }
 }
