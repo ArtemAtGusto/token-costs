@@ -10,7 +10,6 @@ import * as path from 'path';
 import { OpenAICrawler } from './crawlers/openai/index.js';
 import { AnthropicCrawler } from './crawlers/anthropic/index.js';
 import { GoogleCrawler } from './crawlers/google/index.js';
-import { OpenRouterCrawler } from './crawlers/openrouter/index.js';
 import { getCurrentSnapshot, readProviderHistory } from './utils/storage.js';
 import { Provider } from './types.js';
 
@@ -78,7 +77,7 @@ async function showStoredData() {
   console.log('Stored Price Data');
   console.log('='.repeat(60));
 
-  const providers: Provider[] = ['openai', 'anthropic', 'google', 'openrouter'];
+  const providers: Provider[] = ['openai', 'anthropic', 'google'];
 
   for (const provider of providers) {
     try {
@@ -136,11 +135,6 @@ async function main() {
   if (!provider || provider === 'google') {
     const crawler = new GoogleCrawler();
     results.push(await testCrawler('Google', () => crawler.run()));
-  }
-
-  if (!provider || provider === 'openrouter') {
-    const crawler = new OpenRouterCrawler();
-    results.push(await testCrawler('OpenRouter', () => crawler.run()));
   }
 
   // Summary

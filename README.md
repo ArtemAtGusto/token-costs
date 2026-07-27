@@ -1,6 +1,6 @@
 # Token Costs
 
-Daily-updated LLM pricing data for OpenAI, Anthropic, Google, and OpenRouter.
+Daily-updated LLM pricing data for OpenAI, Anthropic, and Google.
 
 > This repository is a fork of [mikkotikkanen/token-costs](https://github.com/mikkotikkanen/token-costs) and retains the original MIT license and copyright notice.
 
@@ -26,8 +26,6 @@ const cost = await client.calculateCost('anthropic', 'claude-sonnet-4', {
 });
 console.log(`Total cost: $${cost.totalCost.toFixed(6)}`);
 
-// OpenRouter models use provider/model format
-const orPricing = await client.getModelPricing('openrouter', 'anthropic/claude-3.5-sonnet');
 ```
 
 Or fetch directly without dependencies:
@@ -39,7 +37,7 @@ const data = await fetch('https://artematgusto.github.io/token-costs/api/v1/open
 ## Features
 
 - **Daily updates** - Crawled automatically at 00:01 UTC
-- **4 providers** - OpenAI, Anthropic, Google, OpenRouter
+- **3 providers** - OpenAI, Anthropic, Google
 - **Custom providers** - Add your own models or override pricing
 - **Offline mode** - Work without network access using custom data
 - **Zero dependencies** - npm package has no runtime dependencies
@@ -95,7 +93,7 @@ cp env.example .env
 MODEL=openai bin/run-crawler
 ```
 
-Supported `MODEL` values are `openai`, `anthropic`, `google`, and `openrouter`. The script reads the token only from `.env`, requests the corresponding default-branch GitHub Actions workflow, and never prints the token.
+Supported `MODEL` values are `openai`, `anthropic`, and `google`. The script reads the token only from `.env`, requests the corresponding default-branch GitHub Actions workflow, and never prints the token.
 
 ## What's Included
 
@@ -109,7 +107,6 @@ token-costs/
 - `api/v1/openai.json`
 - `api/v1/anthropic.json`
 - `api/v1/google.json`
-- `api/v1/openrouter/{provider}.json` - Per-provider files (anthropic, openai, google, deepseek, etc.)
 
 ## Contributing
 

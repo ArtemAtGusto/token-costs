@@ -162,9 +162,9 @@ describe('generate-npm-files', () => {
 
     it('should handle zero prices correctly', () => {
       const history: ProviderPriceHistory = {
-        provider: 'openrouter',
+        provider: 'google',
         lastUpdated: '2024-01-15T00:01:00Z',
-        pricingUrl: 'https://openrouter.ai/models',
+        pricingUrl: 'https://ai.google.dev/pricing',
         changes: [
           {
             date: '2024-01-15',

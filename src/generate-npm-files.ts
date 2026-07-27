@@ -12,7 +12,7 @@ import type { ProviderFile, ProviderData, ModelPricing } from './npm/types.js';
 const HISTORY_DIR = path.join(process.cwd(), 'history', 'prices');
 const OUTPUT_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
 
-type Provider = 'openai' | 'anthropic' | 'google' | 'openrouter';
+type Provider = 'openai' | 'anthropic' | 'google';
 
 async function loadHistory(provider: Provider): Promise<ProviderPriceHistory | null> {
   const filePath = path.join(HISTORY_DIR, `${provider}.json`);
@@ -113,128 +113,21 @@ async function generateFile(provider: Provider): Promise<{ provider: string; mod
   };
 }
 
-// OpenRouter providers we track
-const OPENROUTER_PROVIDERS = [
-  'openai', 'anthropic', 'google', 'deepseek', 'perplexity',
-  'qwen', 'moonshotai', 'z-ai', 'minimax', 'x-ai',
-] as const;
-
-type OpenRouterProvider = typeof OPENROUTER_PROVIDERS[number];
-
-async function loadPreviousOpenRouterFile(subProvider: string): Promise<ProviderFile | null> {
-  const filePath = path.join(OUTPUT_DIR, 'openrouter', `${subProvider}.json`);
-  try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return null;
-  }
-}
-
-async function generateOpenRouterFiles(): Promise<Array<{ provider: string; models: number; size: number }>> {
-  const history = await loadHistory('openrouter');
-  if (!history) {
-    console.log(`  openrouter: no source data`);
-    return [];
-  }
-
-  // Create openrouter subdirectory
-  const openrouterDir = path.join(OUTPUT_DIR, 'openrouter');
-  await fs.mkdir(openrouterDir, { recursive: true });
-
-  const snapshot = getCurrentSnapshot(history);
-  const date = history.lastUpdated.split('T')[0];
-
-  // Group models by provider prefix (e.g., "openai/gpt-4" -> "openai")
-  const modelsByProvider: Record<string, typeof snapshot.models> = {};
-
-  for (const model of snapshot.models) {
-    const [providerPrefix] = model.modelId.split('/');
-    if (!modelsByProvider[providerPrefix]) {
-      modelsByProvider[providerPrefix] = [];
-    }
-    modelsByProvider[providerPrefix].push(model);
-  }
-
-  const results: Array<{ provider: string; models: number; size: number }> = [];
-
-  for (const subProvider of OPENROUTER_PROVIDERS) {
-    const models = modelsByProvider[subProvider] || [];
-    if (models.length === 0) continue;
-
-    // Convert to ProviderData format
-    const modelsRecord: Record<string, ModelPricing> = {};
-    for (const model of models) {
-      const pricing: ModelPricing = {
-        input: model.inputPricePerMillion,
-        output: model.outputPricePerMillion,
-      };
-      if (model.cachedInputPricePerMillion !== undefined) {
-        pricing.cached = model.cachedInputPricePerMillion;
-      }
-      if (model.cacheWritePricePerMillion !== undefined) {
-        pricing.cacheWrite = model.cacheWritePricePerMillion;
-      }
-      if (model.contextWindow !== undefined) {
-        pricing.context = model.contextWindow;
-      }
-      if (model.maxOutputTokens !== undefined) {
-        pricing.maxOutput = model.maxOutputTokens;
-      }
-      modelsRecord[model.modelId] = pricing;
-    }
-
-    const currentData: ProviderData = { date, models: modelsRecord };
-
-    // Load existing file to preserve previous data
-    const existingFile = await loadPreviousOpenRouterFile(subProvider);
-
-    let providerFile: ProviderFile;
-    if (existingFile && existingFile.current.date !== currentData.date) {
-      providerFile = { current: currentData, previous: existingFile.current };
-    } else if (existingFile) {
-      providerFile = { current: currentData, previous: existingFile.previous };
-    } else {
-      providerFile = { current: currentData };
-    }
-
-    const filePath = path.join(openrouterDir, `${subProvider}.json`);
-    const content = JSON.stringify(providerFile, null, 2);
-    await fs.writeFile(filePath, content);
-
-    console.log(`  openrouter/${subProvider}.json: ${models.length} models, ${content.length} bytes`);
-
-    results.push({
-      provider: `openrouter/${subProvider}`,
-      models: models.length,
-      size: content.length,
-    });
-  }
-
-  return results;
-}
-
 async function generateFiles(targetProvider?: Provider): Promise<void> {
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
 
   const providers: Provider[] = targetProvider
     ? [targetProvider]
-    : ['openai', 'anthropic', 'google', 'openrouter'];
+    : ['openai', 'anthropic', 'google'];
 
   console.log(`Generating npm module data files${targetProvider ? ` for ${targetProvider}` : ''}...\n`);
 
   const results: Array<{ provider: string; models: number; size: number }> = [];
 
   for (const provider of providers) {
-    if (provider === 'openrouter') {
-      // OpenRouter gets split into per-provider files
-      const openrouterResults = await generateOpenRouterFiles();
-      results.push(...openrouterResults);
-    } else {
-      const result = await generateFile(provider);
-      if (result) {
-        results.push(result);
-      }
+    const result = await generateFile(provider);
+    if (result) {
+      results.push(result);
     }
   }
 
@@ -270,7 +163,7 @@ export { historyToProviderData };
 // Run if this is the main module
 const scriptPath = process.argv[1];
 if (scriptPath && scriptPath.includes('generate-npm-files')) {
-  const validProviders: Provider[] = ['openai', 'anthropic', 'google', 'openrouter'];
+  const validProviders: Provider[] = ['openai', 'anthropic', 'google'];
   const arg = process.argv[2];
 
   if (arg && !validProviders.includes(arg as Provider)) {

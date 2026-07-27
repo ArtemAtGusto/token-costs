@@ -78,7 +78,7 @@ export interface ProviderFile {
 /**
  * Built-in providers with remote data
  */
-export type BuiltInProvider = 'openai' | 'anthropic' | 'google' | 'openrouter';
+export type BuiltInProvider = 'openai' | 'anthropic' | 'google';
 
 /**
  * Provider type - can be a built-in provider or a custom string

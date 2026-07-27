@@ -12,7 +12,7 @@
 
 ## Quick Reference
 
-**What:** NPM package + JSON API for LLM token pricing (OpenAI, Anthropic, Google, OpenRouter)
+**What:** NPM package + JSON API for LLM token pricing (OpenAI, Anthropic, Google)
 
 **How it works:**
 - Crawlers scrape provider pricing pages daily at 00:01 UTC
@@ -104,7 +104,7 @@ type(scope): description
 
 **Examples:**
 ```bash
-git commit -m "fix: handle empty API response in OpenRouter crawler"
+git commit -m "fix: handle empty API response in a provider crawler"
 git commit -m "feat: add support for audio pricing"
 git commit -m "feat!: change price format from per-token to per-million"
 ```
@@ -121,8 +121,8 @@ git commit -m "feat!: change price format from per-token to per-million"
 
 > **CRITICAL: PR titles MUST follow conventional commit format.** When PRs are squash-merged, GitHub uses the PR title as the commit message. If the title doesn't follow conventional commits (e.g., `feat: add feature`), semantic-release won't detect the change and no release will be triggered.
 >
-> **Good:** `feat: add OpenRouter per-provider file support`
-> **Bad:** `Add OpenRouter per-provider file support`
+> **Good:** `feat: add provider pricing support`
+> **Bad:** `Add provider pricing support`
 
 **Manual release (if needed):**
 ```bash
@@ -150,7 +150,6 @@ token-costs/
 │   │   ├── openai/index.ts
 │   │   ├── anthropic/index.ts
 │   │   ├── google/index.ts
-│   │   └── openrouter/index.ts
 │   ├── npm/                   # NPM package (published)
 │   │   ├── client.ts          # CostClient class
 │   │   ├── types.ts           # Public TypeScript types
@@ -198,21 +197,8 @@ All crawlers extend `BaseCrawler`. See `src/crawlers/base.ts` for:
 
 Reference existing crawlers for patterns:
 - `src/crawlers/openai/index.ts` - HTML scraping with cheerio
-- `src/crawlers/openrouter/index.ts` - API + Playwright (scrapes popularity from provider pages)
 - `src/crawlers/anthropic/index.ts`
 - `src/crawlers/google/index.ts`
-
-### OpenRouter Model Selection
-
-OpenRouter has hundreds of models. We select only the most popular ones using actual usage data:
-
-1. **Scrape provider pages** - Visit each provider's page on OpenRouter (e.g., `/openai`, `/anthropic`) to get token usage stats
-2. **Drop-off heuristic** - Only include models with ≥10% of their provider's top model's usage. This filters out rarely-used models.
-3. **Hard caps** - Max 5 models per provider, max 20 total
-
-**Providers scraped:** openai, anthropic, google, deepseek, perplexity, qwen, moonshotai, z-ai, minimax, x-ai
-
-To add a provider to OpenRouter scraping, update `PROVIDERS_TO_SCRAPE` in `src/crawlers/openrouter/index.ts`.
 
 Each crawler must:
 1. Extend `BaseCrawler`
@@ -268,7 +254,6 @@ See `src/npm/types.ts` for all public types.
 
 Test files are co-located with source:
 - `src/crawlers/base.test.ts`
-- `src/crawlers/openrouter/index.test.ts`
 - `src/utils/storage.test.ts`
 - `src/npm/client.test.ts`
 
@@ -342,5 +327,3 @@ moi moi/token-costs-agent "Merge PR #1"
 - Model IDs must match provider API identifiers
 - History files are append-only (changes never deleted)
 - API files are regenerated from history
-- OpenRouter crawler uses Playwright to scrape popularity data from provider pages
-- Run `npx playwright install chromium` if browser is missing for OpenRouter crawler

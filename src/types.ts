@@ -83,7 +83,7 @@ export interface CrawlResult {
 /**
  * Supported providers
  */
-export type Provider = 'openai' | 'anthropic' | 'google' | 'openrouter';
+export type Provider = 'openai' | 'anthropic' | 'google';
 
 /**
  * Provider configuration

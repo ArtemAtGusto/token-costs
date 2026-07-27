@@ -207,7 +207,7 @@ export async function getProvidersSummary(): Promise<
 > {
   await ensureDataDirs();
 
-  const providers: Provider[] = ['openai', 'anthropic', 'google', 'openrouter'];
+  const providers: Provider[] = ['openai', 'anthropic', 'google'];
   const summaries = [];
 
   for (const provider of providers) {
