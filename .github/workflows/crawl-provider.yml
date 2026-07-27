@@ -7,10 +7,6 @@ on:
         description: Provider crawler to run.
         required: true
         type: string
-      install_playwright:
-        description: Whether this provider needs Chromium.
-        required: true
-        type: boolean
 
 jobs:
   crawl:
@@ -37,7 +33,6 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        if: inputs.install_playwright
         run: npx playwright install chromium
 
       - name: Build
