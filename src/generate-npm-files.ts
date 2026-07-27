@@ -49,6 +49,9 @@ function historyToProviderData(history: ProviderPriceHistory): ProviderData {
     if (model.cachedInputPricePerMillion !== undefined) {
       pricing.cached = model.cachedInputPricePerMillion;
     }
+    if (model.cacheWritePricePerMillion !== undefined) {
+      pricing.cacheWrite = model.cacheWritePricePerMillion;
+    }
     if (model.contextWindow !== undefined) {
       pricing.context = model.contextWindow;
     }
@@ -168,6 +171,9 @@ async function generateOpenRouterFiles(): Promise<Array<{ provider: string; mode
       };
       if (model.cachedInputPricePerMillion !== undefined) {
         pricing.cached = model.cachedInputPricePerMillion;
+      }
+      if (model.cacheWritePricePerMillion !== undefined) {
+        pricing.cacheWrite = model.cacheWritePricePerMillion;
       }
       if (model.contextWindow !== undefined) {
         pricing.context = model.contextWindow;

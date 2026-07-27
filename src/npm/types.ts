@@ -36,6 +36,8 @@ export interface ModelPricing {
   output?: number;
   /** Price per 1M cached input tokens in USD (if supported) */
   cached?: number;
+  /** Price per 1M cache writes in USD (if supported) */
+  cacheWrite?: number;
   /** Context window size in tokens */
   context?: number;
   /** Maximum output tokens */

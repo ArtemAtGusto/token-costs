@@ -92,6 +92,7 @@ function arePricingsEqual(a: ModelPricing, b: ModelPricing): boolean {
     a.inputPricePerMillion === b.inputPricePerMillion &&
     a.outputPricePerMillion === b.outputPricePerMillion &&
     a.cachedInputPricePerMillion === b.cachedInputPricePerMillion &&
+    a.cacheWritePricePerMillion === b.cacheWritePricePerMillion &&
     a.contextWindow === b.contextWindow &&
     a.maxOutputTokens === b.maxOutputTokens
   );

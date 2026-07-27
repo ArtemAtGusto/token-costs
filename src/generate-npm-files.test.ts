@@ -62,6 +62,7 @@ describe('generate-npm-files', () => {
               inputPricePerMillion: 3,
               outputPricePerMillion: 15,
               cachedInputPricePerMillion: 0.3,
+              cacheWritePricePerMillion: 0,
               contextWindow: 200000,
               maxOutputTokens: 8192,
             },
@@ -75,6 +76,7 @@ describe('generate-npm-files', () => {
       expect(model.input).toBe(3);
       expect(model.output).toBe(15);
       expect(model.cached).toBe(0.3);
+      expect(model.cacheWrite).toBe(0);
       expect(model.context).toBe(200000);
       expect(model.maxOutput).toBe(8192);
     });

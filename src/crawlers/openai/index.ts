@@ -41,6 +41,7 @@ export class OpenAICrawler extends BaseCrawler {
           input: number;
           output: number;
           cached?: number;
+          cacheWrite: number;
         }[] = [];
 
         // Helper to parse price string like "$1.75" or "$0.175" to number
@@ -69,6 +70,7 @@ export class OpenAICrawler extends BaseCrawler {
           const hasModel = headers.some(h => h.includes('model'));
           const hasInput = headers.some(h => h === 'input');
           const cachedIndex = headers.findIndex(h => h.includes('cached'));
+          const cacheWriteIndex = headers.findIndex(h => h === 'cache writes');
           const outputIndex = headers.findIndex(h => h === 'output');
           const hasCached = cachedIndex !== -1;
           const hasOutput = outputIndex !== -1;
@@ -86,11 +88,13 @@ export class OpenAICrawler extends BaseCrawler {
             // Use header positions rather than assuming adjacent columns. The current
             // page includes a cache-writes column between cached input and output.
             const cachedStr = hasCached ? cells[cachedIndex]?.textContent?.trim() || '' : '';
+            const cacheWriteStr = cacheWriteIndex !== -1 ? cells[cacheWriteIndex]?.textContent?.trim() || '' : '';
             const outputStr = cells[outputIndex]?.textContent?.trim() || '';
 
             const inputPrice = parsePrice(inputStr);
             const outputPrice = parsePrice(outputStr);
             const cachedPrice = cachedStr === '-' || !cachedStr ? undefined : parsePrice(cachedStr);
+            const cacheWritePrice = cacheWriteStr === '-' || !cacheWriteStr ? 0 : parsePrice(cacheWriteStr);
 
             if (!isNaN(inputPrice) && !isNaN(outputPrice) && modelName) {
               results.push({
@@ -99,6 +103,7 @@ export class OpenAICrawler extends BaseCrawler {
                 input: inputPrice,
                 output: outputPrice,
                 cached: cachedPrice,
+                cacheWrite: cacheWritePrice,
               });
             }
           }
@@ -118,6 +123,7 @@ export class OpenAICrawler extends BaseCrawler {
           modelName: string;
           input: number;
           output: number;
+          cacheWrite: number;
         }[] = [];
 
         const parsePrice = (str: string): number => {
@@ -163,6 +169,7 @@ export class OpenAICrawler extends BaseCrawler {
                 modelName: modelName,
                 input: inputPrice,
                 output: outputPrice,
+                cacheWrite: 0,
               });
             }
           }
@@ -184,6 +191,7 @@ export class OpenAICrawler extends BaseCrawler {
             inputPricePerMillion: m.input,
             outputPricePerMillion: m.output,
             cachedInputPricePerMillion: m.cached,
+            cacheWritePricePerMillion: m.cacheWrite,
           });
         }
       }
@@ -196,6 +204,7 @@ export class OpenAICrawler extends BaseCrawler {
             modelName: m.modelName,
             inputPricePerMillion: m.input,
             outputPricePerMillion: m.output,
+            cacheWritePricePerMillion: m.cacheWrite,
           });
         }
       }
