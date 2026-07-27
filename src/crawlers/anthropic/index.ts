@@ -1,6 +1,6 @@
-import { chromium } from 'playwright';
-import { BaseCrawler } from '../base.js';
+import { BaseCrawler, runCrawlerFromCli } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
+import { withPricingPage } from '../playwright.js';
 
 /**
  * Anthropic price crawler
@@ -11,20 +11,13 @@ export class AnthropicCrawler extends BaseCrawler {
   readonly pricingUrl = 'https://platform.claude.com/docs/en/about-claude/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    const browser = await chromium.launch({
-      headless: true,
-      args: ['--disable-blink-features=AutomationControlled'],
-    });
-
-    try {
-      const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      });
-      const page = await context.newPage();
-      await page.goto(this.pricingUrl, {
+    return withPricingPage(
+      this.pricingUrl,
+      {
         waitUntil: 'networkidle',
         timeout: 30000,
-      });
+      },
+      async page => {
 
       // Wait for the pricing table to load
       await page.waitForSelector('table', { timeout: 10000 });
@@ -151,10 +144,9 @@ export class AnthropicCrawler extends BaseCrawler {
         throw new Error(`[anthropic] Only found ${allModels.length} models, expected at least 3`);
       }
 
-      return allModels;
-    } finally {
-      await browser.close();
-    }
+        return allModels;
+      }
+    );
   }
 
   private isTextModel(name: string): boolean {
@@ -165,15 +157,4 @@ export class AnthropicCrawler extends BaseCrawler {
   }
 }
 
-// Run crawler if this is the main module
-const scriptPath = process.argv[1];
-if (scriptPath && scriptPath.includes('anthropic')) {
-  const crawler = new AnthropicCrawler();
-  crawler.run().then(result => {
-    if (!result.success) {
-      console.error('Crawl failed:', result.error);
-      process.exit(1);
-    }
-    console.log(`Successfully crawled ${result.prices.length} models`);
-  });
-}
+runCrawlerFromCli(new AnthropicCrawler(), 'anthropic');

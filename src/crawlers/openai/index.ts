@@ -1,6 +1,6 @@
-import { chromium } from 'playwright';
-import { BaseCrawler, parsePrice } from '../base.js';
+import { BaseCrawler, runCrawlerFromCli } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
+import { withPricingPage } from '../playwright.js';
 
 /**
  * OpenAI price crawler
@@ -11,20 +11,13 @@ export class OpenAICrawler extends BaseCrawler {
   readonly pricingUrl = 'https://developers.openai.com/api/docs/pricing';
 
   async crawlPrices(): Promise<ModelPricing[]> {
-    const browser = await chromium.launch({
-      headless: true,
-      args: ['--disable-blink-features=AutomationControlled'],
-    });
-
-    try {
-      const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      });
-      const page = await context.newPage();
-      await page.goto(this.pricingUrl, {
+    return withPricingPage(
+      this.pricingUrl,
+      {
         waitUntil: 'domcontentloaded',
         timeout: 60000,
-      });
+      },
+      async page => {
 
       // Wait for the pricing table to load (may need extra time due to JS)
       // Use waitForFunction to wait for table to exist in DOM (not just visible)
@@ -156,10 +149,9 @@ export class OpenAICrawler extends BaseCrawler {
         throw new Error(`[openai] Only found ${allModels.length} models, expected at least 5`);
       }
 
-      return allModels;
-    } finally {
-      await browser.close();
-    }
+        return allModels;
+      }
+    );
   }
 
   private isTextModel(name: string): boolean {
@@ -180,15 +172,4 @@ export class OpenAICrawler extends BaseCrawler {
   }
 }
 
-// Run crawler if this is the main module
-const scriptPath = process.argv[1];
-if (scriptPath && scriptPath.includes('openai')) {
-  const crawler = new OpenAICrawler();
-  crawler.run().then(result => {
-    if (!result.success) {
-      console.error('Crawl failed:', result.error);
-      process.exit(1);
-    }
-    console.log(`Successfully crawled ${result.prices.length} models`);
-  });
-}
+runCrawlerFromCli(new OpenAICrawler(), 'openai');
