@@ -37,34 +37,6 @@ export interface PriceChange {
 }
 
 /**
- * Provider price history file structure
- * Only stores changes to minimize file size
- */
-export interface ProviderPriceHistory {
-  /** Provider name */
-  provider: string;
-  /** Last time prices changed (ISO string) */
-  lastUpdated: string;
-  /** URL of the pricing page */
-  pricingUrl: string;
-  /** List of all price changes in chronological order */
-  changes: PriceChange[];
-}
-
-/**
- * Current snapshot of all prices for a provider
- * Derived from applying all changes
- */
-export interface ProviderPriceSnapshot {
-  /** Provider name */
-  provider: string;
-  /** ISO date string */
-  date: string;
-  /** Current model prices */
-  models: ModelPricing[];
-}
-
-/**
  * Crawler result
  */
 export interface CrawlResult {

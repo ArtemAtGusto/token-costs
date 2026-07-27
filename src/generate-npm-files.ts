@@ -1,176 +1,42 @@
 /**
- * Generate human-readable JSON files for the npm module
- * These files are served from GitHub and can be used standalone
+ * Validate current provider snapshots.
+ * Crawlers write snapshots directly to docs/api/v1 and archive prior versions.
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { ProviderPriceHistory } from './types.js';
-import { getCurrentSnapshot } from './utils/storage.js';
-import type { ProviderFile, ProviderData, ModelPricing } from './npm/types.js';
+import type { ProviderFile } from './npm/types.js';
 
-const HISTORY_DIR = path.join(process.cwd(), 'history', 'prices');
 const OUTPUT_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
+const PROVIDERS = ['openai', 'anthropic', 'google'] as const;
+type Provider = (typeof PROVIDERS)[number];
 
-type Provider = 'openai' | 'anthropic' | 'google';
-
-async function loadHistory(provider: Provider): Promise<ProviderPriceHistory | null> {
-  const filePath = path.join(HISTORY_DIR, `${provider}.json`);
-  try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return null;
-  }
+export function isSupportedProvider(provider: string): provider is Provider {
+  return PROVIDERS.includes(provider as Provider);
 }
 
-async function loadPreviousNpmFile(provider: Provider): Promise<ProviderFile | null> {
-  const filePath = path.join(OUTPUT_DIR, `${provider}.json`);
-  try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return null;
-  }
+async function loadProviderFile(provider: Provider): Promise<ProviderFile> {
+  const content = await fs.readFile(path.join(OUTPUT_DIR, `${provider}.json`), 'utf-8');
+  return JSON.parse(content) as ProviderFile;
 }
 
-function historyToProviderData(history: ProviderPriceHistory): ProviderData {
-  const snapshot = getCurrentSnapshot(history);
-  const date = history.lastUpdated.split('T')[0];
-
-  const models: Record<string, ModelPricing> = {};
-
-  for (const model of snapshot.models) {
-    const pricing: ModelPricing = {
-      input: model.inputPricePerMillion,
-      output: model.outputPricePerMillion,
-    };
-
-    if (model.cachedInputPricePerMillion !== undefined) {
-      pricing.cached = model.cachedInputPricePerMillion;
-    }
-    if (model.cacheWritePricePerMillion !== undefined) {
-      pricing.cacheWrite = model.cacheWritePricePerMillion;
-    }
-    if (model.contextWindow !== undefined) {
-      pricing.context = model.contextWindow;
-    }
-    if (model.maxOutputTokens !== undefined) {
-      pricing.maxOutput = model.maxOutputTokens;
-    }
-
-    models[model.modelId] = pricing;
-  }
-
-  return { date, models };
-}
-
-async function generateFile(provider: Provider): Promise<{ provider: string; models: number; size: number } | null> {
-  const history = await loadHistory(provider);
-  if (!history) {
-    console.log(`  ${provider}: no source data`);
-    return null;
-  }
-
-  const currentData = historyToProviderData(history);
-
-  // Load existing npm file to preserve previous data
-  const existingFile = await loadPreviousNpmFile(provider);
-
-  let providerFile: ProviderFile;
-
-  if (existingFile && existingFile.current.date !== currentData.date) {
-    // Date changed - move current to previous
-    providerFile = {
-      current: currentData,
-      previous: existingFile.current,
-    };
-  } else if (existingFile) {
-    // Same date - keep previous as is
-    providerFile = {
-      current: currentData,
-      previous: existingFile.previous,
-    };
-  } else {
-    // First time - no previous
-    providerFile = {
-      current: currentData,
-    };
-  }
-
-  // Write with 2-space indentation for readability
-  const filePath = path.join(OUTPUT_DIR, `${provider}.json`);
-  const content = JSON.stringify(providerFile, null, 2);
-  await fs.writeFile(filePath, content);
-
-  const modelCount = Object.keys(currentData.models).length;
-  console.log(`  ${provider}.json: ${modelCount} models, ${content.length} bytes`);
-
-  return {
-    provider,
-    models: modelCount,
-    size: content.length,
-  };
-}
-
-async function generateFiles(targetProvider?: Provider): Promise<void> {
-  await fs.mkdir(OUTPUT_DIR, { recursive: true });
-
-  const providers: Provider[] = targetProvider
-    ? [targetProvider]
-    : ['openai', 'anthropic', 'google'];
-
-  console.log(`Generating npm module data files${targetProvider ? ` for ${targetProvider}` : ''}...\n`);
-
-  const results: Array<{ provider: string; models: number; size: number }> = [];
+async function generateFiles(targetProvider?: string): Promise<void> {
+  const providers = targetProvider ? [targetProvider] : PROVIDERS;
 
   for (const provider of providers) {
-    const result = await generateFile(provider);
-    if (result) {
-      results.push(result);
+    if (!isSupportedProvider(provider)) {
+      throw new Error(`Invalid provider: ${provider}. Valid providers: ${PROVIDERS.join(', ')}`);
     }
-  }
 
-  // Summary
-  console.log('\n=== Summary ===\n');
-  console.log('Provider       | Models | Size');
-  console.log('---------------|--------|--------');
-
-  for (const r of results) {
-    console.log(
-      `${r.provider.padEnd(14)} | ${r.models.toString().padStart(6)} | ${r.size.toString().padStart(5)} B`
-    );
-  }
-
-  const totalSize = results.reduce((a, r) => a + r.size, 0);
-  const totalModels = results.reduce((a, r) => a + r.models, 0);
-
-  console.log('---------------|--------|--------');
-  console.log(`${'TOTAL'.padEnd(14)} | ${totalModels.toString().padStart(6)} | ${totalSize.toString().padStart(5)} B`);
-
-  // Show sample (only when generating all providers)
-  if (!targetProvider) {
-    console.log('\n=== Sample: openai.json ===\n');
-    const samplePath = path.join(OUTPUT_DIR, 'openai.json');
-    const sample = await fs.readFile(samplePath, 'utf-8');
-    console.log(sample);
+    const data = await loadProviderFile(provider);
+    console.log(`  ${provider}.json: ${Object.keys(data.models).length} models`);
   }
 }
 
-// Export for testing
-export { historyToProviderData };
-
-// Run if this is the main module
 const scriptPath = process.argv[1];
 if (scriptPath && scriptPath.includes('generate-npm-files')) {
-  const validProviders: Provider[] = ['openai', 'anthropic', 'google'];
-  const arg = process.argv[2];
-
-  if (arg && !validProviders.includes(arg as Provider)) {
-    console.error(`Invalid provider: ${arg}`);
-    console.error(`Valid providers: ${validProviders.join(', ')}`);
+  generateFiles(process.argv[2]).catch(error => {
+    console.error(error);
     process.exit(1);
-  }
-
-  generateFiles(arg as Provider | undefined).catch(console.error);
+  });
 }
