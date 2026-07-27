@@ -32,9 +32,8 @@ export class OpenAICrawler extends BaseCrawler {
       // Extra wait for JS to finish rendering
       await page.waitForTimeout(2000);
 
-      // Extract text-model pricing from every table before the Multimodal models
-      // section. The first table is the primary price table; later tables can add
-      // older models while duplicate model IDs retain the primary table's prices.
+      // Extract pricing data from the "Text tokens" section
+      // Strategy: Find the first table with columns Model|Input|Cached input|Output
       const models = await page.evaluate(() => {
         const results: {
           modelId: string;
@@ -53,20 +52,8 @@ export class OpenAICrawler extends BaseCrawler {
 
         // Find all tables and look for one with the right header structure
         const tables = Array.from(document.querySelectorAll('table'));
-        const multimodalHeading = Array.from(document.querySelectorAll('h2')).find(heading =>
-          heading.textContent?.toLowerCase().includes('multimodal models')
-        );
 
         for (const table of tables) {
-          // Multimodal pricing starts at this heading; do not include this table
-          // or anything that follows it.
-          if (
-            multimodalHeading &&
-            !(table.compareDocumentPosition(multimodalHeading) & Node.DOCUMENT_POSITION_FOLLOWING)
-          ) {
-            break;
-          }
-
           // Some pricing tables have a grouped first header row (for example,
           // short- and long-context prices). Select the row with real columns.
           const headerRow = Array.from(table.querySelectorAll('thead tr, tr')).find(row =>
@@ -120,6 +107,72 @@ export class OpenAICrawler extends BaseCrawler {
               });
             }
           }
+
+          // Only process the first matching table (Text tokens)
+          // to avoid including image/audio models
+          if (results.length > 0) break;
+        }
+
+        return results;
+      });
+
+      // Also get legacy models
+      const legacyModels = await page.evaluate(() => {
+        const results: {
+          modelId: string;
+          modelName: string;
+          input: number;
+          output: number;
+          cacheWrite: number;
+        }[] = [];
+
+        const parsePrice = (str: string): number => {
+          const match = str.match(/\$([0-9.]+)/);
+          return match ? parseFloat(match[1]) : NaN;
+        };
+
+        const headings = Array.from(document.querySelectorAll('h3'));
+        const legacyHeading = headings.find(h =>
+          h.textContent?.toLowerCase().includes('legacy models')
+        );
+
+        if (!legacyHeading) return results;
+
+        let element: Element | null = legacyHeading;
+        let table: HTMLTableElement | null = null;
+
+        while (element && !table) {
+          element = element.nextElementSibling;
+          if (element?.tagName === 'TABLE') {
+            table = element as HTMLTableElement;
+          } else if (element) {
+            table = element.querySelector('table');
+          }
+        }
+
+        if (!table) return results;
+
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        for (const row of rows) {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 3) {
+            const modelName = cells[0].textContent?.trim() || '';
+            const inputStr = cells[1].textContent?.trim() || '';
+            const outputStr = cells[2].textContent?.trim() || '';
+
+            const inputPrice = parsePrice(inputStr);
+            const outputPrice = parsePrice(outputStr);
+
+            if (!isNaN(inputPrice) && !isNaN(outputPrice) && modelName) {
+              results.push({
+                modelId: modelName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-\.]/g, ''),
+                modelName: modelName,
+                input: inputPrice,
+                output: outputPrice,
+                cacheWrite: 0,
+              });
+            }
+          }
         }
 
         return results;
@@ -138,6 +191,19 @@ export class OpenAICrawler extends BaseCrawler {
             inputPricePerMillion: m.input,
             outputPricePerMillion: m.output,
             cachedInputPricePerMillion: m.cached,
+            cacheWritePricePerMillion: m.cacheWrite,
+          });
+        }
+      }
+
+      for (const m of legacyModels) {
+        if (!seenIds.has(m.modelId) && this.isTextModel(m.modelName)) {
+          seenIds.add(m.modelId);
+          allModels.push({
+            modelId: m.modelId,
+            modelName: m.modelName,
+            inputPricePerMillion: m.input,
+            outputPricePerMillion: m.output,
             cacheWritePricePerMillion: m.cacheWrite,
           });
         }
