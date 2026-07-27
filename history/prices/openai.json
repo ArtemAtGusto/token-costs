@@ -1,6 +1,6 @@
 {
   "provider": "openai",
-  "lastCrawled": "2026-07-27T17:14:00.095Z",
+  "lastCrawled": "2026-07-27T17:24:22.992Z",
   "pricingUrl": "https://platform.openai.com/docs/pricing",
   "changes": [
     {
@@ -1228,6 +1228,173 @@
         "modelName": "computer-use-preview",
         "inputPricePerMillion": 1.5,
         "outputPricePerMillion": 6
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.6-sol",
+        "modelName": "gpt-5.6-sol",
+        "inputPricePerMillion": 5,
+        "outputPricePerMillion": 30,
+        "cachedInputPricePerMillion": 0.5,
+        "cacheWritePricePerMillion": 6.25
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.6-sol",
+        "modelName": "gpt-5.6-sol",
+        "inputPricePerMillion": 5,
+        "outputPricePerMillion": 30,
+        "cachedInputPricePerMillion": 0.5
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.6-terra",
+        "modelName": "gpt-5.6-terra",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 15,
+        "cachedInputPricePerMillion": 0.25,
+        "cacheWritePricePerMillion": 3.125
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.6-terra",
+        "modelName": "gpt-5.6-terra",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 15,
+        "cachedInputPricePerMillion": 0.25
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.6-luna",
+        "modelName": "gpt-5.6-luna",
+        "inputPricePerMillion": 1,
+        "outputPricePerMillion": 6,
+        "cachedInputPricePerMillion": 0.1,
+        "cacheWritePricePerMillion": 1.25
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.6-luna",
+        "modelName": "gpt-5.6-luna",
+        "inputPricePerMillion": 1,
+        "outputPricePerMillion": 6,
+        "cachedInputPricePerMillion": 0.1
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.5",
+        "modelName": "gpt-5.5",
+        "inputPricePerMillion": 5,
+        "outputPricePerMillion": 30,
+        "cachedInputPricePerMillion": 0.5,
+        "cacheWritePricePerMillion": 0
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.5",
+        "modelName": "gpt-5.5",
+        "inputPricePerMillion": 5,
+        "outputPricePerMillion": 30,
+        "cachedInputPricePerMillion": 0.5
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.5-pro",
+        "modelName": "gpt-5.5-pro",
+        "inputPricePerMillion": 30,
+        "outputPricePerMillion": 180,
+        "cacheWritePricePerMillion": 0
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.5-pro",
+        "modelName": "gpt-5.5-pro",
+        "inputPricePerMillion": 30,
+        "outputPricePerMillion": 180
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.4",
+        "modelName": "gpt-5.4",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 15,
+        "cachedInputPricePerMillion": 0.25,
+        "cacheWritePricePerMillion": 0
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.4",
+        "modelName": "gpt-5.4",
+        "inputPricePerMillion": 2.5,
+        "outputPricePerMillion": 15,
+        "cachedInputPricePerMillion": 0.25
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.4-mini",
+        "modelName": "gpt-5.4-mini",
+        "inputPricePerMillion": 0.75,
+        "outputPricePerMillion": 4.5,
+        "cachedInputPricePerMillion": 0.075,
+        "cacheWritePricePerMillion": 0
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.4-mini",
+        "modelName": "gpt-5.4-mini",
+        "inputPricePerMillion": 0.75,
+        "outputPricePerMillion": 4.5,
+        "cachedInputPricePerMillion": 0.075
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.4-nano",
+        "modelName": "gpt-5.4-nano",
+        "inputPricePerMillion": 0.2,
+        "outputPricePerMillion": 1.25,
+        "cachedInputPricePerMillion": 0.02,
+        "cacheWritePricePerMillion": 0
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.4-nano",
+        "modelName": "gpt-5.4-nano",
+        "inputPricePerMillion": 0.2,
+        "outputPricePerMillion": 1.25,
+        "cachedInputPricePerMillion": 0.02
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "updated",
+      "pricing": {
+        "modelId": "gpt-5.4-pro",
+        "modelName": "gpt-5.4-pro",
+        "inputPricePerMillion": 30,
+        "outputPricePerMillion": 180,
+        "cacheWritePricePerMillion": 0
+      },
+      "previousPricing": {
+        "modelId": "gpt-5.4-pro",
+        "modelName": "gpt-5.4-pro",
+        "inputPricePerMillion": 30,
+        "outputPricePerMillion": 180
       }
     }
   ]
