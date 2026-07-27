@@ -36,7 +36,7 @@ async function loadPreviousNpmFile(provider: Provider): Promise<ProviderFile | n
 
 function historyToProviderData(history: ProviderPriceHistory): ProviderData {
   const snapshot = getCurrentSnapshot(history);
-  const date = history.lastCrawled.split('T')[0];
+  const date = history.lastUpdated.split('T')[0];
 
   const models: Record<string, ModelPricing> = {};
 
@@ -143,7 +143,7 @@ async function generateOpenRouterFiles(): Promise<Array<{ provider: string; mode
   await fs.mkdir(openrouterDir, { recursive: true });
 
   const snapshot = getCurrentSnapshot(history);
-  const date = history.lastCrawled.split('T')[0];
+  const date = history.lastUpdated.split('T')[0];
 
   // Group models by provider prefix (e.g., "openai/gpt-4" -> "openai")
   const modelsByProvider: Record<string, typeof snapshot.models> = {};

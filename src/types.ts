@@ -43,8 +43,8 @@ export interface PriceChange {
 export interface ProviderPriceHistory {
   /** Provider name */
   provider: string;
-  /** Last time prices were crawled (ISO string) */
-  lastCrawled: string;
+  /** Last time prices changed (ISO string) */
+  lastUpdated: string;
   /** URL of the pricing page */
   pricingUrl: string;
   /** List of all price changes in chronological order */

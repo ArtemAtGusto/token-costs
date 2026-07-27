@@ -86,7 +86,7 @@ async function showStoredData() {
       if (history) {
         const snapshot = getCurrentSnapshot(history);
         console.log(`\n${provider}:`);
-        console.log(`  - Last crawled: ${history.lastCrawled}`);
+        console.log(`  - Last updated: ${history.lastUpdated}`);
         console.log(`  - Total changes: ${history.changes.length}`);
         console.log(`  - Current models: ${snapshot.models.length}`);
 

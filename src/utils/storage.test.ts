@@ -155,7 +155,7 @@ describe('Storage Utils', () => {
     it('should build snapshot from changes', () => {
       const history: ProviderPriceHistory = {
         provider: 'openai',
-        lastCrawled: '2024-01-15T00:00:00Z',
+        lastUpdated: '2024-01-15T00:00:00Z',
         pricingUrl: 'https://openai.com/pricing',
         changes: [
           {
@@ -205,7 +205,7 @@ describe('Storage Utils', () => {
     it('should handle removed models', () => {
       const history: ProviderPriceHistory = {
         provider: 'openai',
-        lastCrawled: '2024-01-15T00:00:00Z',
+        lastUpdated: '2024-01-15T00:00:00Z',
         pricingUrl: 'https://openai.com/pricing',
         changes: [
           {

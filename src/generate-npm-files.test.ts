@@ -6,7 +6,7 @@ import type { ProviderPriceHistory, ModelPricing as InternalModelPricing } from 
 vi.mock('./utils/storage.js', () => ({
   getCurrentSnapshot: vi.fn((history: ProviderPriceHistory) => ({
     provider: history.provider,
-    date: history.lastCrawled.split('T')[0],
+    date: history.lastUpdated.split('T')[0],
     models: history.changes
       .filter(c => c.changeType !== 'removed')
       .map(c => c.pricing),
@@ -18,7 +18,7 @@ describe('generate-npm-files', () => {
     it('should convert internal ModelPricing to public format', () => {
       const history: ProviderPriceHistory = {
         provider: 'openai',
-        lastCrawled: '2024-01-15T00:01:00Z',
+        lastUpdated: '2024-01-15T00:01:00Z',
         pricingUrl: 'https://openai.com/api/pricing/',
         changes: [
           {
@@ -50,7 +50,7 @@ describe('generate-npm-files', () => {
     it('should map all pricing fields correctly', () => {
       const history: ProviderPriceHistory = {
         provider: 'anthropic',
-        lastCrawled: '2024-01-15T00:01:00Z',
+        lastUpdated: '2024-01-15T00:01:00Z',
         pricingUrl: 'https://anthropic.com/pricing',
         changes: [
           {
@@ -84,7 +84,7 @@ describe('generate-npm-files', () => {
     it('should omit undefined optional fields', () => {
       const history: ProviderPriceHistory = {
         provider: 'openai',
-        lastCrawled: '2024-01-15T00:01:00Z',
+        lastUpdated: '2024-01-15T00:01:00Z',
         pricingUrl: 'https://openai.com/api/pricing/',
         changes: [
           {
@@ -114,7 +114,7 @@ describe('generate-npm-files', () => {
     it('should handle multiple models', () => {
       const history: ProviderPriceHistory = {
         provider: 'google',
-        lastCrawled: '2024-01-15T00:01:00Z',
+        lastUpdated: '2024-01-15T00:01:00Z',
         pricingUrl: 'https://ai.google.dev/pricing',
         changes: [
           {
@@ -150,7 +150,7 @@ describe('generate-npm-files', () => {
     it('should extract date from ISO timestamp', () => {
       const history: ProviderPriceHistory = {
         provider: 'openai',
-        lastCrawled: '2024-03-20T12:30:45.123Z',
+        lastUpdated: '2024-03-20T12:30:45.123Z',
         pricingUrl: 'https://openai.com/api/pricing/',
         changes: [],
       };
@@ -163,7 +163,7 @@ describe('generate-npm-files', () => {
     it('should handle zero prices correctly', () => {
       const history: ProviderPriceHistory = {
         provider: 'openrouter',
-        lastCrawled: '2024-01-15T00:01:00Z',
+        lastUpdated: '2024-01-15T00:01:00Z',
         pricingUrl: 'https://openrouter.ai/models',
         changes: [
           {
@@ -188,7 +188,7 @@ describe('generate-npm-files', () => {
     it('should handle decimal precision', () => {
       const history: ProviderPriceHistory = {
         provider: 'google',
-        lastCrawled: '2024-01-15T00:01:00Z',
+        lastUpdated: '2024-01-15T00:01:00Z',
         pricingUrl: 'https://ai.google.dev/pricing',
         changes: [
           {
