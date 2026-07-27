@@ -81,7 +81,15 @@ export class AnthropicCrawler extends BaseCrawler {
         for (const row of rows) {
           const cells = row.querySelectorAll('td');
           if (cells.length >= 6) {
-            const modelName = cells[0].textContent?.trim() || '';
+            // Labels may include linked availability dates or parenthesized
+            // deprecation notes. Neither is part of the model's actual name.
+            const modelCell = cells[0].cloneNode(true) as HTMLElement;
+            modelCell.querySelectorAll('a').forEach(link => link.remove());
+            modelCell.querySelectorAll('br').forEach(br => br.replaceWith(' '));
+            const modelName = (modelCell.textContent || '')
+              .replace(/\s*\([^)]*\)\s*/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
             const inputStr = cells[1].textContent?.trim() || '';  // Base Input Tokens
             const cacheHitsStr = cells[4].textContent?.trim() || '';  // Cache Hits & Refreshes
             const outputStr = cells[5].textContent?.trim() || '';  // Output Tokens
@@ -100,9 +108,8 @@ export class AnthropicCrawler extends BaseCrawler {
                 modelId: modelName
                   .toLowerCase()
                   .replace(/\s+/g, '-')
-                  .replace(/[^a-z0-9\-\.]/g, '')
-                  .replace(/\(deprecated\)/g, ''),
-                modelName: modelName.replace(/\s*\(deprecated\)\s*/g, ''),
+                  .replace(/[^a-z0-9\-\.]/g, ''),
+                modelName,
                 input: inputPrice,
                 output: outputPrice,
                 cached: !isNaN(cachedPrice) ? cachedPrice : undefined,
