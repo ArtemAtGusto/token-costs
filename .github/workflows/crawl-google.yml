@@ -19,4 +19,3 @@ jobs:
     with:
       provider: google
       install_playwright: false
-      history_include: history/google/*.json

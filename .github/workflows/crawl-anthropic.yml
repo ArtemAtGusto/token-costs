@@ -19,4 +19,3 @@ jobs:
     with:
       provider: anthropic
       install_playwright: true
-      history_include: history/anthropic/*.json

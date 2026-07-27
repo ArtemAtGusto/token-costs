@@ -11,10 +11,6 @@ on:
         description: Whether this provider needs Chromium.
         required: true
         type: boolean
-      history_include:
-        description: Allowlisted history path used when applying the generated patch.
-        required: true
-        type: string
 
 jobs:
   crawl:
@@ -97,12 +93,12 @@ jobs:
       - name: Apply allowlisted update
         run: |
           git apply --check --index \
-            --include="${{ inputs.history_include }}" \
+            --include="history/${{ inputs.provider }}/*.json" \
             --include="docs/api/v1/${{ inputs.provider }}.json" \
             --exclude='*' \
             generated-update/update.patch
           git apply --index \
-            --include="${{ inputs.history_include }}" \
+            --include="history/${{ inputs.provider }}/*.json" \
             --include="docs/api/v1/${{ inputs.provider }}.json" \
             --exclude='*' \
             generated-update/update.patch
