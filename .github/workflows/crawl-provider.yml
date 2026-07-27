@@ -1,0 +1,127 @@
+name: Crawl Provider Prices
+
+on:
+  workflow_call:
+    inputs:
+      provider:
+        description: Provider crawler to run.
+        required: true
+        type: string
+      install_playwright:
+        description: Whether this provider needs Chromium.
+        required: true
+        type: boolean
+      history_include:
+        description: Allowlisted history path used when applying the generated patch.
+        required: true
+        type: string
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      has_changes: ${{ steps.changes.outputs.has_changes }}
+
+    steps:
+      - name: Checkout default-branch source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: '26'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: inputs.install_playwright
+        run: npx playwright install chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Run provider crawler
+        run: npm run crawl:${{ inputs.provider }}
+
+      - name: Generate npm data
+        run: npm run generate:npm -- ${{ inputs.provider }}
+
+      - name: Package allowlisted changes
+        id: changes
+        run: |
+          git add -- "history/${{ inputs.provider }}" "docs/api/v1/${{ inputs.provider }}.json"
+          if git diff --staged --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            git diff --staged --binary -- "history/${{ inputs.provider }}" "docs/api/v1/${{ inputs.provider }}.json" > update.patch
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload generated update
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: ${{ inputs.provider }}-price-update
+          path: update.patch
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: crawl
+    if: needs.crawl.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout default-branch source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Download generated update
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ${{ inputs.provider }}-price-update
+          path: generated-update
+
+      - name: Apply allowlisted update
+        run: |
+          git apply --check --index \
+            --include="${{ inputs.history_include }}" \
+            --include="docs/api/v1/${{ inputs.provider }}.json" \
+            --exclude='*' \
+            generated-update/update.patch
+          git apply --index \
+            --include="${{ inputs.history_include }}" \
+            --include="docs/api/v1/${{ inputs.provider }}.json" \
+            --exclude='*' \
+            generated-update/update.patch
+          test -n "$(git diff --staged --name-only)"
+
+      - name: Create branch and pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="data/${{ inputs.provider }}-$(date -u +%Y-%m-%d-%H%M%S)"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git switch -c "$BRANCH"
+          git commit -m "Update ${{ inputs.provider }} prices $(date -u +%Y-%m-%d)"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --set-upstream origin "$BRANCH"
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          gh pr create \
+            --title "Update ${{ inputs.provider }} prices $(date -u +%Y-%m-%d)" \
+            --body "Automated price update from the ${{ inputs.provider }} crawler." \
+            --head "$BRANCH" \
+            --base main
