@@ -86,6 +86,22 @@ describe('CostClient', () => {
     });
   });
 
+  it('fetches pricing from this repository by default', async () => {
+    let requestedUrl = '';
+    const defaultClient = new CostClient({
+      fetch: async (url: RequestInfo | URL) => {
+        requestedUrl = String(url);
+        return new Response(JSON.stringify(openaiData), { status: 200 });
+      },
+    });
+
+    await defaultClient.getModelPricing('openai', 'gpt-4o');
+
+    expect(requestedUrl).toBe(
+      'https://raw.githubusercontent.com/ArtemAtGusto/token-costs/main/docs/api/v1/openai.json'
+    );
+  });
+
   describe('getModelPricing', () => {
     it('should return correct pricing for OpenAI gpt-4o', async () => {
       const result = await client.getModelPricing('openai', 'gpt-4o');
