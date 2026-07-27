@@ -68,4 +68,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr merge "${{ steps.create_pr.outputs.pr_number }}" --squash --delete-branch
-        run: |
