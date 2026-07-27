@@ -32,6 +32,12 @@ export class OpenAICrawler extends BaseCrawler {
       // Extra wait for JS to finish rendering
       await page.waitForTimeout(2000);
 
+      // Older text models are hidden behind the first "All models" control, which
+      // belongs to the text-pricing section before Multimodal models.
+      const allModelsButton = page.getByRole('button', { name: 'All models', exact: true }).first();
+      await allModelsButton.click();
+      await page.waitForTimeout(500);
+
       // Extract pricing data from the "Text tokens" section
       // Strategy: Find the first table with columns Model|Input|Cached input|Output
       const models = await page.evaluate(() => {
