@@ -92,12 +92,12 @@ jobs:
       - name: Apply allowlisted update
         run: |
           git apply --check --index \
-            --include=history/anthropic/** \
+            --include=history/anthropic/*.json \
             --include=docs/api/v1/anthropic.json \
             --exclude='*' \
             generated-update/update.patch
           git apply --index \
-            --include=history/anthropic/** \
+            --include=history/anthropic/*.json \
             --include=docs/api/v1/anthropic.json \
             --exclude='*' \
             generated-update/update.patch
