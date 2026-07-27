@@ -2,14 +2,39 @@
   "lastUpdatedAt": "2026-07-27",
   "perTokenAmount": 1000000,
   "models": {
-    "gemini-2.0-flash": {
-      "input": 0.4,
-      "output": 0.4,
-      "cached": 1
+    "gemini-3.6-flash": {
+      "input": 1.5,
+      "output": 7.5,
+      "cached": 14
     },
-    "gemini-2.0-flash-lite": {
-      "input": 0.075,
-      "output": 0.3
+    "gemini-3.5-flash": {
+      "input": 1.5,
+      "output": 9,
+      "cached": 14
+    },
+    "gemini-3.5-flash-lite": {
+      "input": 0.3,
+      "output": 2.5,
+      "cached": 14
+    },
+    "gemini-3.1-flash-lite": {
+      "input": 1.5,
+      "output": 1.5,
+      "cached": 14
+    },
+    "gemini-3.1-pro-preview": {
+      "input": 14,
+      "output": 14,
+      "cached": 14
+    },
+    "gemini-3.1-pro-preview-customtools": {
+      "input": 14,
+      "output": 14,
+      "cached": 14
+    },
+    "gemini-3.1-flash-live-preview": {
+      "input": 14,
+      "output": 14
     },
     "gemini-3-flash-preview": {
       "input": 3,
@@ -36,34 +61,14 @@
       "output": 0.4,
       "cached": 35
     },
-    "gemini-3.1-pro-preview": {
-      "input": 14,
-      "output": 14,
-      "cached": 14
+    "gemini-2.0-flash": {
+      "input": 0.4,
+      "output": 0.4,
+      "cached": 1
     },
-    "gemini-3.1-pro-preview-customtools": {
-      "input": 14,
-      "output": 14,
-      "cached": 14
-    },
-    "gemini-3.1-flash-lite": {
-      "input": 1.5,
-      "output": 1.5,
-      "cached": 14
-    },
-    "gemini-3.1-flash-live-preview": {
-      "input": 14,
-      "output": 14
-    },
-    "gemini-3.6-flash": {
-      "input": 1.5,
-      "output": 7.5,
-      "cached": 14
-    },
-    "gemini-3.5-flash": {
-      "input": 1.5,
-      "output": 9,
-      "cached": 14
+    "gemini-2.0-flash-lite": {
+      "input": 0.075,
+      "output": 0.3
     }
   }
 }
