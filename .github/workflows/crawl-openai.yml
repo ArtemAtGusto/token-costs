@@ -2,24 +2,34 @@ name: Crawl OpenAI Prices
 
 on:
   schedule:
-    # Run at 00:01 UTC every day
+    # Run at 00:01 UTC every day.
     - cron: '1 0 * * *'
-  workflow_dispatch:
-    # Allow manual triggering
+  repository_dispatch:
+    # Manual runs must be requested with the `crawl-openai` event type. GitHub
+    # resolves repository_dispatch workflows from the default branch.
+    types: [crawl-openai]
+
+concurrency:
+  group: crawl-openai
+  cancel-in-progress: false
 
 jobs:
   crawl:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+    outputs:
+      has_changes: ${{ steps.changes.outputs.has_changes }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout default-branch source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1e60f620b9541d6ec6b4f4d99a0e7f4488b0b07c # v4.0.3
         with:
           node-version: '20'
           cache: 'npm'
@@ -39,35 +49,75 @@ jobs:
       - name: Generate npm data
         run: npm run generate:npm -- openai
 
-      - name: Check for changes
+      - name: Package allowlisted changes
         id: changes
         run: |
-          git add history/ docs/
+          git add -- history/prices/openai.json docs/api/v1/openai.json
           if git diff --staged --quiet; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
+            git diff --staged --binary -- history/prices/openai.json docs/api/v1/openai.json > update.patch
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create branch and PR
+      - name: Upload generated update
         if: steps.changes.outputs.has_changes == 'true'
-        id: create_pr
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: openai-price-update
+          path: update.patch
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: crawl
+    if: needs.crawl.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout default-branch source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Download generated update
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: openai-price-update
+          path: generated-update
+
+      - name: Apply allowlisted update
+        run: |
+          git apply --check --index \
+            --include=history/prices/openai.json \
+            --include=docs/api/v1/openai.json \
+            --exclude='*' \
+            generated-update/update.patch
+          git apply --index \
+            --include=history/prices/openai.json \
+            --include=docs/api/v1/openai.json \
+            --exclude='*' \
+            generated-update/update.patch
+          test -n "$(git diff --staged --name-only)"
+
+      - name: Create branch and pull request
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           BRANCH="data/openai-$(date -u +%Y-%m-%d-%H%M%S)"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git checkout -b "$BRANCH"
+          git switch -c "$BRANCH"
           git commit -m "Update OpenAI prices $(date -u +%Y-%m-%d)"
-          git push -u origin "$BRANCH"
-          PR_URL=$(gh pr create --title "Update OpenAI prices $(date -u +%Y-%m-%d)" --body "Automated price update from OpenAI crawler." --head "$BRANCH" --base main)
-          PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: Merge PR
-        if: steps.changes.outputs.has_changes == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr merge "${{ steps.create_pr.outputs.pr_number }}" --squash --delete-branch
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --set-upstream origin "$BRANCH"
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          gh pr create \
+            --title "Update OpenAI prices $(date -u +%Y-%m-%d)" \
+            --body "Automated price update from the OpenAI crawler." \
+            --head "$BRANCH" \
+            --base main
