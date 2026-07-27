@@ -5,29 +5,31 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  release:
-    name: Release
+  verify:
+    name: Verify release source
     runs-on: ubuntu-latest
     # Skip if commit message contains [skip ci]
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout release source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          fetch-depth: 0
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1e60f620b9541d6ec6b4f4d99a0e7f4488b0b07c # v4.0.3
         with:
           node-version: 22
           cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
@@ -38,8 +40,34 @@ jobs:
       - name: Test
         run: npm test
 
+  publish:
+    name: Publish release
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout verified release source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d6ec6b4f4d99a0e7f4488b0b07c # v4.0.3
+        with:
+          node-version: 22
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install release dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           NPM_CONFIG_PROVENANCE: true
         run: npx semantic-release
