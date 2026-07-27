@@ -52,28 +52,22 @@ export interface ModelPricing {
 }
 
 /**
- * Provider pricing data for a single date
- */
-export interface ProviderData {
-  /** ISO date string (YYYY-MM-DD) */
-  date: string;
-  /** Model pricing map: modelId -> pricing */
-  models: Record<string, ModelPricing>;
-}
-
-/**
- * Dual-date structure for handling update timing
- * When fetching on a new day, if current.date hasn't updated yet,
- * the previous data is still valid to use
+ * Current provider pricing snapshot.
+ * All token prices are expressed per `perTokenAmount` tokens.
  */
 export interface ProviderFile {
-  /** Current/latest pricing data */
-  current: ProviderData;
-  /** Previous day's data (for fallback during updates) */
-  previous?: ProviderData;
-  /** Deprecation information (if this endpoint is deprecated) */
+  /** ISO date when this snapshot was last updated (YYYY-MM-DD) */
+  lastUpdatedAt: string;
+  /** Number of tokens represented by each token price */
+  perTokenAmount: number;
+  /** Model pricing map: modelId -> pricing */
+  models: Record<string, ModelPricing>;
+  /** Optional metadata for custom provider data. API snapshots omit this field. */
   deprecated?: DeprecationInfo;
 }
+
+/** @deprecated Use ProviderFile. */
+export type ProviderData = ProviderFile;
 
 /**
  * Built-in providers with remote data

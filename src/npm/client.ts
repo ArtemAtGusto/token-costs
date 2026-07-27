@@ -7,7 +7,6 @@ import type {
   Provider,
   BuiltInProvider,
   ProviderFile,
-  ProviderData,
   ModelPricing,
   CostClientOptions,
   PriceLookupResult,
@@ -191,10 +190,9 @@ export class CostClient {
     if (!customModels) return null;
 
     return {
-      current: {
-        date: this.getToday(),
-        models: customModels,
-      },
+      lastUpdatedAt: this.getToday(),
+      perTokenAmount: 1_000_000,
+      models: customModels,
     };
   }
 
@@ -207,12 +205,9 @@ export class CostClient {
 
     return {
       ...file,
-      current: {
-        ...file.current,
-        models: {
-          ...file.current.models,
-          ...customModels, // Custom takes precedence
-        },
+      models: {
+        ...file.models,
+        ...customModels, // Custom takes precedence
       },
     };
   }
@@ -285,16 +280,16 @@ export class CostClient {
     }
 
     const data = (await response.json()) as ProviderFile;
-    const daysDiff = daysDifference(today, data.current.date);
+    const daysDiff = daysDifference(today, data.lastUpdatedAt);
 
     // Check for clock mismatch: data from future means our clock is behind
     if (daysDiff < 0) {
-      throw new ClockMismatchError(today, data.current.date, daysDiff);
+      throw new ClockMismatchError(today, data.lastUpdatedAt, daysDiff);
     }
 
     // Check for clock mismatch: data more than 1 day behind means our clock is ahead
     if (daysDiff > 1) {
-      throw new ClockMismatchError(today, data.current.date, daysDiff);
+      throw new ClockMismatchError(today, data.lastUpdatedAt, daysDiff);
     }
 
     // Cache the data with today's date so we don't fetch again today
@@ -309,15 +304,6 @@ export class CostClient {
   }
 
   /**
-   * Get the effective pricing data, handling the dual-date fallback
-   */
-  private getEffectiveData(file: ProviderFile): ProviderData {
-    // Always use current - the dual-date structure is for consumers
-    // who want to detect if data is stale and handle it themselves
-    return file.current;
-  }
-
-  /**
    * Get pricing for a specific model
    *
    * @param provider - The provider (openai, anthropic, or google)
@@ -327,11 +313,10 @@ export class CostClient {
    */
   async getModelPricing(provider: Provider, modelId: string): Promise<PriceLookupResult> {
     const file = await this.fetchProvider(provider);
-    const data = this.getEffectiveData(file);
-    const pricing = data.models[modelId];
+    const pricing = file.models[modelId];
 
     if (!pricing) {
-      const available = Object.keys(data.models).join(', ');
+      const available = Object.keys(file.models).join(', ');
       throw new Error(
         `Model '${modelId}' not found for provider '${provider}'. Available: ${available}`
       );
@@ -339,13 +324,13 @@ export class CostClient {
 
     // Data is stale if today's date (with offset) is newer than the data date
     const today = this.getToday();
-    const stale = data.date < today;
+    const stale = file.lastUpdatedAt < today;
 
     return {
       provider,
       modelId,
       pricing,
-      date: data.date,
+      date: file.lastUpdatedAt,
       stale,
     };
   }
@@ -369,7 +354,7 @@ export class CostClient {
    */
   async getProviderModels(provider: Provider): Promise<Record<string, ModelPricing>> {
     const file = await this.fetchProvider(provider);
-    return this.getEffectiveData(file).models;
+    return file.models;
   }
 
   /**
@@ -436,7 +421,7 @@ export class CostClient {
   }
 
   /**
-   * Get the raw provider file (includes both current and previous data)
+   * Get the raw provider snapshot.
    */
   async getRawProviderData(provider: Provider): Promise<ProviderFile> {
     return this.fetchProvider(provider);
@@ -448,7 +433,7 @@ export class CostClient {
    */
   getCachedDate(provider: Provider): string | null {
     const cached = this.cache.get(provider);
-    return cached?.data.current.date ?? null;
+    return cached?.data.lastUpdatedAt ?? null;
   }
 
   /**

@@ -1,227 +1,154 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import {
-  ModelPricing,
-  PriceChange,
-  Provider,
-  ProviderPriceHistory,
-  ProviderPriceSnapshot
-} from '../types.js';
+import { ModelPricing, PriceChange, Provider } from '../types.js';
+import type { ModelPricing as PublicModelPricing, ProviderFile } from '../npm/types.js';
 
 const HISTORY_DIR = path.join(process.cwd(), 'history');
-const PRICES_DIR = path.join(HISTORY_DIR, 'prices');
+const API_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
+const PER_TOKEN_AMOUNT = 1_000_000;
 
-/**
- * Ensure data directories exist
- */
-export async function ensureDataDirs(): Promise<void> {
-  await fs.mkdir(HISTORY_DIR, { recursive: true });
-  await fs.mkdir(PRICES_DIR, { recursive: true });
-}
-
-/**
- * Get the path to a provider's price history file
- */
 function getProviderFilePath(provider: Provider): string {
-  return path.join(PRICES_DIR, `${provider}.json`);
+  return path.join(API_DIR, `${provider}.json`);
 }
 
-/**
- * Read provider price history
- */
-export async function readProviderHistory(
-  provider: Provider
-): Promise<ProviderPriceHistory | null> {
-  const filePath = getProviderFilePath(provider);
+function getProviderHistoryDir(provider: Provider): string {
+  return path.join(HISTORY_DIR, provider);
+}
 
+/** Ensure provider history directories exist. */
+export async function ensureDataDirs(): Promise<void> {
+  await fs.mkdir(API_DIR, { recursive: true });
+  await Promise.all(
+    (['openai', 'anthropic', 'google'] as Provider[]).map(provider =>
+      fs.mkdir(getProviderHistoryDir(provider), { recursive: true })
+    )
+  );
+}
+
+/** Read a provider's current API snapshot. */
+export async function readProviderHistory(provider: Provider): Promise<ProviderFile | null> {
   try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(content) as ProviderPriceHistory;
+    return JSON.parse(await fs.readFile(getProviderFilePath(provider), 'utf-8')) as ProviderFile;
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return null;
-    }
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
     throw error;
   }
 }
 
-/**
- * Write provider price history
- */
-export async function writeProviderHistory(
-  history: ProviderPriceHistory
-): Promise<void> {
+/** Write a provider's current API snapshot. */
+export async function writeProviderHistory(provider: Provider, snapshot: ProviderFile): Promise<void> {
   await ensureDataDirs();
-  const filePath = getProviderFilePath(history.provider as Provider);
-  await fs.writeFile(filePath, JSON.stringify(history, null, 2));
+  await fs.writeFile(getProviderFilePath(provider), JSON.stringify(snapshot, null, 2));
 }
 
-/**
- * Get current snapshot from history by applying all changes
- */
-export function getCurrentSnapshot(
-  history: ProviderPriceHistory
-): ProviderPriceSnapshot {
-  const modelsMap = new Map<string, ModelPricing>();
+/** Convert public snapshot pricing to crawler pricing. */
+export function snapshotToPrices(snapshot: ProviderFile): ModelPricing[] {
+  return Object.entries(snapshot.models).map(([modelId, pricing]) => ({
+    modelId,
+    modelName: modelId,
+    inputPricePerMillion: pricing.input ?? 0,
+    outputPricePerMillion: pricing.output ?? 0,
+    ...(pricing.cached !== undefined && { cachedInputPricePerMillion: pricing.cached }),
+    ...(pricing.cacheWrite !== undefined && { cacheWritePricePerMillion: pricing.cacheWrite }),
+    ...(pricing.context !== undefined && { contextWindow: pricing.context }),
+    ...(pricing.maxOutput !== undefined && { maxOutputTokens: pricing.maxOutput }),
+  }));
+}
 
-  for (const change of history.changes) {
-    switch (change.changeType) {
-      case 'added':
-      case 'updated':
-        modelsMap.set(change.pricing.modelId, change.pricing);
-        break;
-      case 'removed':
-        modelsMap.delete(change.pricing.modelId);
-        break;
-    }
+/** Convert crawler pricing to the public snapshot format. */
+export function pricesToSnapshot(prices: ModelPricing[], lastUpdatedAt: string): ProviderFile {
+  const models: Record<string, PublicModelPricing> = {};
+
+  for (const price of prices) {
+    models[price.modelId] = {
+      input: price.inputPricePerMillion,
+      output: price.outputPricePerMillion,
+      ...(price.cachedInputPricePerMillion !== undefined && { cached: price.cachedInputPricePerMillion }),
+      ...(price.cacheWritePricePerMillion !== undefined && { cacheWrite: price.cacheWritePricePerMillion }),
+      ...(price.contextWindow !== undefined && { context: price.contextWindow }),
+      ...(price.maxOutputTokens !== undefined && { maxOutput: price.maxOutputTokens }),
+    };
   }
 
-  return {
-    provider: history.provider,
-    date: history.lastUpdated,
-    models: Array.from(modelsMap.values()),
-  };
+  return { lastUpdatedAt, perTokenAmount: PER_TOKEN_AMOUNT, models };
 }
 
-/**
- * Compare two ModelPricing objects for equality
- */
+/** Copy a snapshot into history using its embedded update date. */
+export async function archiveProviderSnapshot(provider: Provider, snapshot: ProviderFile): Promise<string> {
+  const historyDir = getProviderHistoryDir(provider);
+  await fs.mkdir(historyDir, { recursive: true });
+
+  const date = snapshot.lastUpdatedAt;
+  let suffix = 0;
+  let filePath: string;
+  do {
+    const filename = suffix === 0 ? `${date}.json` : `${date}-${suffix}.json`;
+    filePath = path.join(historyDir, filename);
+    suffix += 1;
+    try {
+      await fs.access(filePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') break;
+      throw error;
+    }
+  } while (true);
+
+  await fs.writeFile(filePath, JSON.stringify(snapshot, null, 2));
+  return filePath;
+}
+
 function arePricingsEqual(a: ModelPricing, b: ModelPricing): boolean {
-  return (
-    a.modelId === b.modelId &&
-    a.inputPricePerMillion === b.inputPricePerMillion &&
-    a.outputPricePerMillion === b.outputPricePerMillion &&
-    a.cachedInputPricePerMillion === b.cachedInputPricePerMillion &&
-    a.cacheWritePricePerMillion === b.cacheWritePricePerMillion &&
-    a.contextWindow === b.contextWindow &&
-    a.maxOutputTokens === b.maxOutputTokens
-  );
+  return a.modelId === b.modelId
+    && a.inputPricePerMillion === b.inputPricePerMillion
+    && a.outputPricePerMillion === b.outputPricePerMillion
+    && a.cachedInputPricePerMillion === b.cachedInputPricePerMillion
+    && a.cacheWritePricePerMillion === b.cacheWritePricePerMillion
+    && a.contextWindow === b.contextWindow
+    && a.maxOutputTokens === b.maxOutputTokens;
 }
 
-/**
- * Detect changes between current prices and new prices
- */
-export function detectChanges(
-  currentPrices: ModelPricing[],
-  newPrices: ModelPricing[],
-  date: string
-): PriceChange[] {
+/** Detect additions, removals, and price changes between snapshots. */
+export function detectChanges(currentPrices: ModelPricing[], newPrices: ModelPricing[], date: string): PriceChange[] {
   const changes: PriceChange[] = [];
-  const currentMap = new Map(currentPrices.map(p => [p.modelId, p]));
-  const newMap = new Map(newPrices.map(p => [p.modelId, p]));
+  const currentMap = new Map(currentPrices.map(price => [price.modelId, price]));
+  const newMap = new Map(newPrices.map(price => [price.modelId, price]));
 
-  // Check for added and updated models
   for (const [modelId, newPricing] of newMap) {
     const currentPricing = currentMap.get(modelId);
-
     if (!currentPricing) {
-      // New model added
-      changes.push({
-        date,
-        changeType: 'added',
-        pricing: newPricing,
-      });
+      changes.push({ date, changeType: 'added', pricing: newPricing });
     } else if (!arePricingsEqual(currentPricing, newPricing)) {
-      // Model pricing updated
-      changes.push({
-        date,
-        changeType: 'updated',
-        pricing: newPricing,
-        previousPricing: currentPricing,
-      });
+      changes.push({ date, changeType: 'updated', pricing: newPricing, previousPricing: currentPricing });
     }
   }
 
-  // Check for removed models
   for (const [modelId, currentPricing] of currentMap) {
-    if (!newMap.has(modelId)) {
-      changes.push({
-        date,
-        changeType: 'removed',
-        pricing: currentPricing,
-      });
-    }
+    if (!newMap.has(modelId)) changes.push({ date, changeType: 'removed', pricing: currentPricing });
   }
 
   return changes;
 }
 
 /**
- * Update provider history with new prices
- * Returns the changes that were made
+ * Update the current snapshot. When data changes, archive the exact prior file first.
  */
 export async function updateProviderPrices(
   provider: Provider,
-  pricingUrl: string,
+  _pricingUrl: string,
   newPrices: ModelPricing[]
 ): Promise<PriceChange[]> {
-  const now = new Date().toISOString();
-  const today = now.split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  const current = await readProviderHistory(provider);
 
-  let history = await readProviderHistory(provider);
-
-  if (!history) {
-    // First time crawling this provider - all models are "added"
-    const changes: PriceChange[] = newPrices.map(pricing => ({
-      date: today,
-      changeType: 'added' as const,
-      pricing,
-    }));
-
-    history = {
-      provider,
-      lastUpdated: now,
-      pricingUrl,
-      changes,
-    };
-
-    await writeProviderHistory(history);
-    return changes;
+  if (!current) {
+    await writeProviderHistory(provider, pricesToSnapshot(newPrices, today));
+    return newPrices.map(pricing => ({ date: today, changeType: 'added' as const, pricing }));
   }
 
-  // Get current snapshot and detect changes
-  const currentSnapshot = getCurrentSnapshot(history);
-  const changes = detectChanges(currentSnapshot.models, newPrices, today);
+  const changes = detectChanges(snapshotToPrices(current), newPrices, today);
+  if (changes.length === 0) return changes;
 
-  if (changes.length === 0) {
-    return changes;
-  }
-
-  history.changes.push(...changes);
-  history.lastUpdated = now;
-  await writeProviderHistory(history);
-
+  await archiveProviderSnapshot(provider, current);
+  await writeProviderHistory(provider, pricesToSnapshot(newPrices, today));
   return changes;
-}
-
-/**
- * Get a summary of all providers and their model counts
- */
-export async function getProvidersSummary(): Promise<
-  Array<{
-    provider: string;
-    modelCount: number;
-    lastUpdated: string;
-    totalChanges: number;
-  }>
-> {
-  await ensureDataDirs();
-
-  const providers: Provider[] = ['openai', 'anthropic', 'google'];
-  const summaries = [];
-
-  for (const provider of providers) {
-    const history = await readProviderHistory(provider);
-    if (history) {
-      const snapshot = getCurrentSnapshot(history);
-      summaries.push({
-        provider: history.provider,
-        modelCount: snapshot.models.length,
-        lastUpdated: history.lastUpdated,
-        totalChanges: history.changes.length,
-      });
-    }
-  }
-
-  return summaries;
 }

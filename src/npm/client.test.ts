@@ -10,33 +10,25 @@ function getUtcDate(offsetMs: number = 0): string {
 // Mock data with realistic pricing - dynamically dated
 function createMockOpenAiData(date: string): ProviderFile {
   return {
-    current: {
-      date,
-      models: {
-        'gpt-4o': { input: 2.5, output: 10, cached: 1.25, context: 128000 },
-        'gpt-4o-mini': { input: 0.15, output: 0.6, cached: 0.075, context: 128000 },
-        'o1-pro': { input: 150, output: 600, context: 200000 },
-        'o1': { input: 15, output: 60, context: 200000 },
-      },
-    },
-    previous: {
-      date: '2025-01-01',
-      models: {
-        'gpt-4o': { input: 5, output: 15, context: 128000 },
-      },
+    lastUpdatedAt: date,
+    perTokenAmount: 1_000_000,
+    models: {
+      'gpt-4o': { input: 2.5, output: 10, cached: 1.25, context: 128000 },
+      'gpt-4o-mini': { input: 0.15, output: 0.6, cached: 0.075, context: 128000 },
+      'o1-pro': { input: 150, output: 600, context: 200000 },
+      'o1': { input: 15, output: 60, context: 200000 },
     },
   };
 }
 
 function createMockAnthropicData(date: string): ProviderFile {
   return {
-    current: {
-      date,
-      models: {
-        'claude-sonnet-4': { input: 3, output: 15, cached: 0.3, context: 200000 },
-        'claude-opus-4.5': { input: 15, output: 75, cached: 1.5, context: 200000 },
-        'claude-haiku-3': { input: 0.25, output: 1.25, cached: 0.03, context: 200000 },
-      },
+    lastUpdatedAt: date,
+    perTokenAmount: 1_000_000,
+    models: {
+      'claude-sonnet-4': { input: 3, output: 15, cached: 0.3, context: 200000 },
+      'claude-opus-4.5': { input: 15, output: 75, cached: 1.5, context: 200000 },
+      'claude-haiku-3': { input: 0.25, output: 1.25, cached: 0.03, context: 200000 },
     },
   };
 }
@@ -105,20 +97,20 @@ describe('CostClient', () => {
   describe('getModelPricing', () => {
     it('should return correct pricing for OpenAI gpt-4o', async () => {
       const result = await client.getModelPricing('openai', 'gpt-4o');
-      const expected = openaiData.current.models['gpt-4o'];
+      const expected = openaiData.models['gpt-4o'];
 
       expect(result.provider).toBe('openai');
       expect(result.modelId).toBe('gpt-4o');
       expect(result.pricing.input).toBe(expected.input);
       expect(result.pricing.output).toBe(expected.output);
       expect(result.pricing.cached).toBe(expected.cached);
-      expect(result.date).toBe(openaiData.current.date);
+      expect(result.date).toBe(openaiData.lastUpdatedAt);
       expect(result.stale).toBe(false);
     });
 
     it('should return correct pricing for OpenAI gpt-4o-mini', async () => {
       const result = await client.getModelPricing('openai', 'gpt-4o-mini');
-      const expected = openaiData.current.models['gpt-4o-mini'];
+      const expected = openaiData.models['gpt-4o-mini'];
 
       expect(result.pricing.input).toBe(expected.input);
       expect(result.pricing.output).toBe(expected.output);
@@ -127,7 +119,7 @@ describe('CostClient', () => {
 
     it('should return correct pricing for OpenAI o1-pro (most expensive)', async () => {
       const result = await client.getModelPricing('openai', 'o1-pro');
-      const expected = openaiData.current.models['o1-pro'];
+      const expected = openaiData.models['o1-pro'];
 
       expect(result.pricing.input).toBe(expected.input);
       expect(result.pricing.output).toBe(expected.output);
@@ -135,7 +127,7 @@ describe('CostClient', () => {
 
     it('should return correct pricing for Anthropic claude-sonnet-4', async () => {
       const result = await client.getModelPricing('anthropic', 'claude-sonnet-4');
-      const expected = anthropicData.current.models['claude-sonnet-4'];
+      const expected = anthropicData.models['claude-sonnet-4'];
 
       expect(result.provider).toBe('anthropic');
       expect(result.pricing.input).toBe(expected.input);
@@ -145,7 +137,7 @@ describe('CostClient', () => {
 
     it('should return cached pricing for Anthropic claude-opus-4.5', async () => {
       const result = await client.getModelPricing('anthropic', 'claude-opus-4.5');
-      const expected = anthropicData.current.models['claude-opus-4.5'];
+      const expected = anthropicData.models['claude-opus-4.5'];
 
       expect(result.pricing.input).toBe(expected.input);
       expect(result.pricing.output).toBe(expected.output);
@@ -154,7 +146,7 @@ describe('CostClient', () => {
 
     it('should return cached pricing for Anthropic claude-haiku-3', async () => {
       const result = await client.getModelPricing('anthropic', 'claude-haiku-3');
-      const expected = anthropicData.current.models['claude-haiku-3'];
+      const expected = anthropicData.models['claude-haiku-3'];
 
       expect(result.pricing.input).toBe(expected.input);
       expect(result.pricing.output).toBe(expected.output);
@@ -185,7 +177,7 @@ describe('CostClient', () => {
 
     it('should return pricing for existing model', async () => {
       const result = await client.getModelPricingOrNull('openai', 'gpt-4o');
-      const expected = openaiData.current.models['gpt-4o'];
+      const expected = openaiData.models['gpt-4o'];
       expect(result).not.toBeNull();
       expect(result?.pricing.input).toBe(expected.input);
     });
@@ -193,7 +185,7 @@ describe('CostClient', () => {
 
   describe('calculateCost', () => {
     it('should calculate cost correctly for simple case', async () => {
-      const expected = openaiData.current.models['gpt-4o'];
+      const expected = openaiData.models['gpt-4o'];
       const result = await client.calculateCost('openai', 'gpt-4o', {
         inputTokens: 1_000_000,
         outputTokens: 1_000_000,
@@ -206,7 +198,7 @@ describe('CostClient', () => {
     });
 
     it('should calculate cost for small token counts', async () => {
-      const expected = openaiData.current.models['gpt-4o'];
+      const expected = openaiData.models['gpt-4o'];
       const result = await client.calculateCost('openai', 'gpt-4o', {
         inputTokens: 1000,
         outputTokens: 500,
@@ -221,7 +213,7 @@ describe('CostClient', () => {
     });
 
     it('should use cached pricing when available and specified', async () => {
-      const expected = anthropicData.current.models['claude-sonnet-4'];
+      const expected = anthropicData.models['claude-sonnet-4'];
       const result = await client.calculateCost('anthropic', 'claude-sonnet-4', {
         inputTokens: 1_000_000,
         outputTokens: 500_000,
@@ -240,7 +232,7 @@ describe('CostClient', () => {
 
     it('should use cached pricing when available', async () => {
       // Use Anthropic claude-sonnet-4 which has cached pricing
-      const expected = anthropicData.current.models['claude-sonnet-4'];
+      const expected = anthropicData.models['claude-sonnet-4'];
       const result = await client.calculateCost('anthropic', 'claude-sonnet-4', {
         inputTokens: 1_000_000,
         outputTokens: 0,
@@ -260,7 +252,7 @@ describe('CostClient', () => {
         outputTokens: 500,
       });
 
-      expect(result.date).toBe(openaiData.current.date);
+      expect(result.date).toBe(openaiData.lastUpdatedAt);
       expect(result.stale).toBe(false);
     });
   });
@@ -268,7 +260,7 @@ describe('CostClient', () => {
   describe('listModels', () => {
     it('should list all OpenAI models', async () => {
       const models = await client.listModels('openai');
-      const expectedCount = Object.keys(openaiData.current.models).length;
+      const expectedCount = Object.keys(openaiData.models).length;
 
       expect(models).toContain('gpt-4o');
       expect(models).toContain('gpt-4o-mini');
@@ -277,7 +269,7 @@ describe('CostClient', () => {
 
     it('should list all Anthropic models', async () => {
       const models = await client.listModels('anthropic');
-      const expectedCount = Object.keys(anthropicData.current.models).length;
+      const expectedCount = Object.keys(anthropicData.models).length;
 
       expect(models).toContain('claude-sonnet-4');
       expect(models).toContain('claude-haiku-3');
@@ -382,17 +374,11 @@ describe('CostClient', () => {
   });
 
   describe('getRawProviderData', () => {
-    it('should return full provider file with current and previous', async () => {
+    it('should return the provider snapshot', async () => {
       const data = await client.getRawProviderData('openai');
 
-      expect(data.current).toBeDefined();
-      expect(data.current.date).toBe(openaiData.current.date);
-      expect(data.current.models['gpt-4o']).toBeDefined();
-
-      // Previous may or may not exist depending on data
-      if (openaiData.previous) {
-        expect(data.previous).toBeDefined();
-      }
+      expect(data.lastUpdatedAt).toBe(openaiData.lastUpdatedAt);
+      expect(data.models['gpt-4o']).toBeDefined();
     });
   });
 });
@@ -468,7 +454,7 @@ describe('Custom providers and offline mode', () => {
 
       // Remote model should still work
       const remoteResult = await client.getModelPricing('openai', 'gpt-4o');
-      expect(remoteResult.pricing.input).toBe(openaiData.current.models['gpt-4o'].input);
+      expect(remoteResult.pricing.input).toBe(openaiData.models['gpt-4o'].input);
     });
 
     it('should allow custom data to override remote data', async () => {
@@ -576,11 +562,10 @@ describe('Deprecation handling', () => {
   function createDeprecatedFetch() {
     return async (): Promise<Response> => {
       const deprecatedData = {
-        current: {
-          date: getUtcDate(),
-          models: {
-            'test-model': { input: 1, output: 2 },
-          },
+        lastUpdatedAt: getUtcDate(),
+        perTokenAmount: 1_000_000,
+        models: {
+          'test-model': { input: 1, output: 2 },
         },
         deprecated: {
           since: '2025-01-01',
@@ -718,11 +703,10 @@ describe('Deprecation handling', () => {
     // Create fetch that returns non-deprecated data
     const nonDeprecatedFetch = async (): Promise<Response> => {
       const data = {
-        current: {
-          date: getUtcDate(),
-          models: {
-            'test-model': { input: 1, output: 2 },
-          },
+        lastUpdatedAt: getUtcDate(),
+        perTokenAmount: 1_000_000,
+        models: {
+          'test-model': { input: 1, output: 2 },
         },
         // No deprecated field
       };

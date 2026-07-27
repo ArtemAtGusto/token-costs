@@ -51,11 +51,11 @@ jobs:
       - name: Package allowlisted changes
         id: changes
         run: |
-          git add -- history/prices/anthropic.json docs/api/v1/anthropic.json
+          git add -- history/anthropic docs/api/v1/anthropic.json
           if git diff --staged --quiet; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
-            git diff --staged --binary -- history/prices/anthropic.json docs/api/v1/anthropic.json > update.patch
+            git diff --staged --binary -- history/anthropic docs/api/v1/anthropic.json > update.patch
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -92,12 +92,12 @@ jobs:
       - name: Apply allowlisted update
         run: |
           git apply --check --index \
-            --include=history/prices/anthropic.json \
+            --include=history/anthropic/** \
             --include=docs/api/v1/anthropic.json \
             --exclude='*' \
             generated-update/update.patch
           git apply --index \
-            --include=history/prices/anthropic.json \
+            --include=history/anthropic/** \
             --include=docs/api/v1/anthropic.json \
             --exclude='*' \
             generated-update/update.patch

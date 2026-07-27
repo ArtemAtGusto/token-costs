@@ -852,13 +852,13 @@ console.log(cost.totalCost);  // 0.0165`, this)">
         <pre><code><span class="token-keyword">const</span> response = <span class="token-keyword">await</span> <span class="token-function">fetch</span>(<span class="token-string">'https://mikkotikkanen.github.io/token-costs/api/v1/openai.json'</span>);
 <span class="token-keyword">const</span> data = <span class="token-keyword">await</span> response.<span class="token-function">json</span>();
 
-<span class="token-keyword">const</span> gpt4o = data.current.models[<span class="token-string">'gpt-4o'</span>];
+<span class="token-keyword">const</span> gpt4o = data.models[<span class="token-string">'gpt-4o'</span>];
 console.<span class="token-function">log</span>(<span class="token-string">`Input: $</span>${gpt4o.input}<span class="token-string">/M tokens`</span>);
 console.<span class="token-function">log</span>(<span class="token-string">`Output: $</span>${gpt4o.output}<span class="token-string">/M tokens`</span>);</code></pre>
         <button class="copy-btn" onclick="copyToClipboard(`const response = await fetch('https://mikkotikkanen.github.io/token-costs/api/v1/openai.json');
 const data = await response.json();
 
-const gpt4o = data.current.models['gpt-4o'];
+const gpt4o = data.models['gpt-4o'];
 console.log(\`Input: \$\${gpt4o.input}/M tokens\`);
 console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
@@ -962,7 +962,7 @@ console.log(\`Output: \$\${gpt4o.output}/M tokens\`);`, this)">
       <h2><span class="section-number">04</span>Stale Data Handling</h2>
       <p>The <code>stale</code> flag indicates if pricing data might be outdated. This happens when:</p>
       <ul>
-        <li><strong>Update window</strong> - Data updates at 00:01 UTC. Between midnight and 00:01, yesterday's data is "current"</li>
+        <li><strong>Update window</strong> - Data updates at 00:01 UTC. Before a successful crawl, the latest snapshot may still be from yesterday</li>
         <li><strong>Fetch failure</strong> - If crawlers fail to update, yesterday's data persists</li>
         <li><strong>Clock skew</strong> - Your server's date differs from the data's date</li>
       </ul>
@@ -1044,9 +1044,9 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
       <h3>API Response Structure</h3>
       <div class="code-block">
         <pre><code>{
-  <span class="token-string">"current"</span>: {
-    <span class="token-string">"date"</span>: <span class="token-string">"2026-01-12"</span>,
-    <span class="token-string">"models"</span>: {
+  <span class="token-string">"lastUpdatedAt"</span>: <span class="token-string">"2026-01-12"</span>,
+  <span class="token-string">"perTokenAmount"</span>: <span class="token-number">1000000</span>,
+  <span class="token-string">"models"</span>: {
       <span class="token-string">"gpt-4o"</span>: {
         <span class="token-string">"input"</span>: <span class="token-number">2.5</span>,
         <span class="token-string">"output"</span>: <span class="token-number">10</span>,
@@ -1058,11 +1058,6 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
         <span class="token-string">"output"</span>: <span class="token-number">0.6</span>,
         <span class="token-string">"context"</span>: <span class="token-number">128000</span>
       }
-    }
-  },
-  <span class="token-string">"previous"</span>: {
-    <span class="token-string">"date"</span>: <span class="token-string">"2026-01-11"</span>,
-    <span class="token-string">"models"</span>: { ... }
   }
 }</code></pre>
       </div>
@@ -1078,14 +1073,14 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
         <tr><td><code>maxOutput</code></td><td>number?</td><td>Maximum output tokens</td></tr>
       </table>
 
-      <h3>Why Current and Previous?</h3>
+      <h3>Snapshot History</h3>
       <div class="note">
-        <p>Data updates at 00:01 UTC. If your application fetches at 23:59 UTC and caches, it might have "yesterday's" data when the calendar date changes.</p>
-        <p>The dual structure lets you:</p>
+        <p>Each API file contains only the current snapshot. When a crawler finds a change, it copies the prior snapshot into the provider's history directory before writing the update.</p>
+        <p>The snapshot fields let you:</p>
         <ul>
           <li>Detect if your cached data is stale</li>
-          <li>Fall back to previous data if current is missing</li>
           <li>Show users when prices last changed</li>
+          <li>Interpret token prices using <code>perTokenAmount</code></li>
         </ul>
       </div>
     </section>
@@ -1132,7 +1127,7 @@ console.<span class="token-function">log</span>(<span class="token-string">`Cost
     <section id="historical">
       <h2><span class="section-number">08</span>Historical Data</h2>
       <p>Full price change history is stored in the GitHub repository:</p>
-      <p><a href="https://github.com/mikkotikkanen/token-costs/tree/main/history/prices">github.com/mikkotikkanen/token-costs/tree/main/history/prices</a></p>
+      <p><a href="https://github.com/ArtemAtGusto/token-costs/tree/main/history">github.com/ArtemAtGusto/token-costs/tree/main/history</a></p>
 
       <h3>Historical Format</h3>
       <div class="code-block">

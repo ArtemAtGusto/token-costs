@@ -10,7 +10,7 @@ import * as path from 'path';
 import { OpenAICrawler } from './crawlers/openai/index.js';
 import { AnthropicCrawler } from './crawlers/anthropic/index.js';
 import { GoogleCrawler } from './crawlers/google/index.js';
-import { getCurrentSnapshot, readProviderHistory } from './utils/storage.js';
+import { readProviderHistory } from './utils/storage.js';
 import { Provider } from './types.js';
 
 interface TestResult {
@@ -81,19 +81,18 @@ async function showStoredData() {
 
   for (const provider of providers) {
     try {
-      const history = await readProviderHistory(provider);
-      if (history) {
-        const snapshot = getCurrentSnapshot(history);
+      const snapshot = await readProviderHistory(provider);
+      if (snapshot) {
+        const models = Object.entries(snapshot.models);
         console.log(`\n${provider}:`);
-        console.log(`  - Last updated: ${history.lastUpdated}`);
-        console.log(`  - Total changes: ${history.changes.length}`);
-        console.log(`  - Current models: ${snapshot.models.length}`);
+        console.log(`  - Last updated: ${snapshot.lastUpdatedAt}`);
+        console.log(`  - Current models: ${models.length}`);
 
-        if (snapshot.models.length > 0) {
+        if (models.length > 0) {
           console.log('  - Sample models:');
-          for (const model of snapshot.models.slice(0, 3)) {
+          for (const [modelId, model] of models.slice(0, 3)) {
             console.log(
-              `    • ${model.modelId}: $${model.inputPricePerMillion}/$${model.outputPricePerMillion}`
+              `    • ${modelId}: $${model.input}/$${model.output}`
             );
           }
         }

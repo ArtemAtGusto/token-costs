@@ -16,8 +16,8 @@
 
 **How it works:**
 - Crawlers scrape provider pricing pages daily at 00:01 UTC
-- Changes stored in `history/prices/*.json` (append-only log)
-- Compact API files generated in `docs/api/v1/*.json`
+- Current snapshots stored in `docs/api/v1/*.json`
+- Prior snapshots archived in `history/{provider}/{lastUpdatedAt}.json`
 - GitHub Pages serves API files
 - NPM package fetches + caches API data
 
@@ -137,7 +137,7 @@ npx semantic-release --dry-run  # Preview what would happen
 ### Data Flow
 
 ```
-Provider Sites → Crawlers → history/prices/*.json → generate-npm-files → docs/api/v1/*.json → GitHub Pages → NPM Package
+Provider Sites → Crawlers → history/{provider}/ prior snapshot → docs/api/v1 current snapshot → GitHub Pages → NPM Package
 ```
 
 ### Directory Structure
@@ -159,7 +159,7 @@ token-costs/
 │   │   └── http.ts            # Fetch with user-agent
 │   ├── types.ts               # Internal types (crawlers)
 │   └── generate-npm-files.ts  # History → API converter
-├── history/prices/            # Historical data (committed)
+├── history/{provider}/        # Prior provider snapshots (committed)
 ├── docs/
 │   ├── index.html             # Documentation site
 │   └── api/v1/*.json          # API files (committed)
@@ -219,15 +219,15 @@ Each crawler must:
 ## Storage
 
 See `src/utils/storage.ts` for all storage functions:
-- `readProviderHistory()` - Load history file
-- `writeProviderHistory()` - Save history file
-- `getCurrentSnapshot()` - Build current state from changes
+- `readProviderHistory()` - Load the current provider snapshot
+- `writeProviderHistory()` - Save the current provider snapshot
+- `archiveProviderSnapshot()` - Copy the prior snapshot into provider history
 - `detectChanges()` - Compare old vs new prices
-- `updateProviderPrices()` - Main update function
+- `updateProviderPrices()` - Archive then replace changed snapshots
 
 ### Data Formats
 
-**History format** (`history/prices/*.json`): See `src/types.ts` for `ProviderPriceHistory` interface
+**History format** (`history/{provider}/*.json`): Historical files are complete prior API snapshots.
 
 **API format** (`docs/api/v1/*.json`): See `src/npm/types.ts` for `ProviderFile` interface
 
