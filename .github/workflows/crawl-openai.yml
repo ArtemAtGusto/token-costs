@@ -19,4 +19,4 @@ jobs:
     with:
       provider: openai
       install_playwright: true
-      history_include: history/openai/**
+      history_include: history/openai/*.json
