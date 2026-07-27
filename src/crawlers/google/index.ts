@@ -1,4 +1,4 @@
-import { BaseCrawler, parsePrice } from '../base.js';
+import { BaseCrawler, runCrawlerFromCli } from '../base.js';
 import { ModelPricing, Provider } from '../../types.js';
 import { fetchHtml, withRetry } from '../../utils/http.js';
 
@@ -113,15 +113,4 @@ export class GoogleCrawler extends BaseCrawler {
   }
 }
 
-// Run crawler if this is the main module
-const scriptPath = process.argv[1];
-if (scriptPath && scriptPath.includes('google')) {
-  const crawler = new GoogleCrawler();
-  crawler.run().then(result => {
-    if (!result.success) {
-      console.error('Crawl failed:', result.error);
-      process.exit(1);
-    }
-    console.log(`Successfully crawled ${result.prices.length} models`);
-  });
-}
+runCrawlerFromCli(new GoogleCrawler(), 'google');

@@ -73,6 +73,20 @@ export abstract class BaseCrawler {
   }
 }
 
+/** Run a crawler when its module is invoked directly from the command line. */
+export function runCrawlerFromCli(crawler: BaseCrawler, scriptIdentifier: string): void {
+  const scriptPath = process.argv[1];
+  if (!scriptPath || !scriptPath.includes(scriptIdentifier)) return;
+
+  crawler.run().then(result => {
+    if (!result.success) {
+      console.error('Crawl failed:', result.error);
+      process.exit(1);
+    }
+    console.log(`Successfully crawled ${result.prices.length} models`);
+  });
+}
+
 /**
  * Parse a price string like "$0.50" or "0.50" to a number
  * Extracts the first price-like number from the string
