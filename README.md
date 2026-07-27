@@ -85,6 +85,18 @@ const offlineClient = new CostClient({
 
 Full usage guide, API reference, and data formats: **[artematgusto.github.io/token-costs](https://artematgusto.github.io/token-costs)**
 
+## Manually Run a Price Crawler
+
+Only repository administrators can manually run workflows at this time. To request a crawler run from the trusted default branch, create a local `.env` file from the example and add a GitHub API token:
+
+```bash
+cp env.example .env
+# Set GITHUB_API_TOKEN in .env
+MODEL=openai bin/run-crawler
+```
+
+Supported `MODEL` values are `openai`, `anthropic`, `google`, and `openrouter`. The script reads the token only from `.env`, requests the corresponding default-branch GitHub Actions workflow, and never prints the token.
+
 ## What's Included
 
 ```
