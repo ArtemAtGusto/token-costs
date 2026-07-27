@@ -1,6 +1,6 @@
 {
   "provider": "openai",
-  "lastUpdated": "2026-07-27T19:57:03.632Z",
+  "lastUpdated": "2026-07-27T20:34:23.431Z",
   "pricingUrl": "https://platform.openai.com/docs/pricing",
   "changes": [
     {
@@ -1823,6 +1823,30 @@
     {
       "date": "2026-07-27",
       "changeType": "removed",
+      "pricing": {
+        "modelId": "gpt-4.1",
+        "modelName": "gpt-4.1",
+        "inputPricePerMillion": 2,
+        "outputPricePerMillion": 8,
+        "cachedInputPricePerMillion": 0.5,
+        "cacheWritePricePerMillion": 0
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "added",
+      "pricing": {
+        "modelId": "gpt-5.2",
+        "modelName": "gpt-5.2",
+        "inputPricePerMillion": 1.75,
+        "outputPricePerMillion": 14,
+        "cachedInputPricePerMillion": 0.175,
+        "cacheWritePricePerMillion": 0
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "changeType": "added",
       "pricing": {
         "modelId": "gpt-4.1",
         "modelName": "gpt-4.1",
