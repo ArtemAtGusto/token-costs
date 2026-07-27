@@ -110,8 +110,7 @@ export class CostClient {
    * Check if a provider is a built-in provider with remote data
    */
   private isBuiltInProvider(provider: Provider): provider is BuiltInProvider {
-    return ['openai', 'anthropic', 'google', 'openrouter'].includes(provider)
-      || provider.startsWith('openrouter/');
+    return ['openai', 'anthropic', 'google'].includes(provider);
   }
 
   /**
@@ -221,15 +220,9 @@ export class CostClient {
   /**
    * Fetch provider data, using cache if available and fresh
    * @param provider - The provider to fetch
-   * @param modelId - Optional model ID, used to extract sub-provider for OpenRouter
    */
-  private async fetchProvider(provider: Provider, modelId?: string): Promise<ProviderFile> {
-    // For openrouter, extract sub-provider from model ID (e.g., 'anthropic/claude-3.5-sonnet' -> 'openrouter/anthropic')
-    let effectiveProvider = provider;
-    if (provider === 'openrouter' && modelId && modelId.includes('/')) {
-      const subProvider = modelId.split('/')[0];
-      effectiveProvider = `openrouter/${subProvider}`;
-    }
+  private async fetchProvider(provider: Provider): Promise<ProviderFile> {
+    const effectiveProvider = provider;
 
     const today = this.getToday();
     const isBuiltIn = this.isBuiltInProvider(effectiveProvider);
@@ -253,7 +246,7 @@ export class CostClient {
         return customFile;
       }
       throw new Error(
-        `Provider '${provider}' not found. Use a built-in provider (openai, anthropic, google, openrouter) ` +
+        `Provider '${provider}' not found. Use a built-in provider (openai, anthropic, google) ` +
         `or add it to customProviders.`
       );
     }
@@ -327,13 +320,13 @@ export class CostClient {
   /**
    * Get pricing for a specific model
    *
-   * @param provider - The provider (openai, anthropic, google, openrouter)
+   * @param provider - The provider (openai, anthropic, or google)
    * @param modelId - The model identifier
    * @returns The pricing data for the model
    * @throws Error if model is not found
    */
   async getModelPricing(provider: Provider, modelId: string): Promise<PriceLookupResult> {
-    const file = await this.fetchProvider(provider, modelId);
+    const file = await this.fetchProvider(provider);
     const data = this.getEffectiveData(file);
     const pricing = data.models[modelId];
 

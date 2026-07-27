@@ -17,7 +17,6 @@ const PROVIDER_URLS = [
   { name: 'OpenAI', url: 'https://openai.com' },
   { name: 'Anthropic', url: 'https://anthropic.com' },
   { name: 'Google', url: 'https://ai.google.dev' },
-  { name: 'OpenRouter', url: 'https://openrouter.ai' },
   { name: 'Mistral', url: 'https://mistral.ai' },
   { name: 'Cohere', url: 'https://cohere.ai' },
   { name: 'Together', url: 'https://together.ai' },

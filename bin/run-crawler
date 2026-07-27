@@ -7,7 +7,7 @@ usage() {
 Request a price crawler run from the trusted default branch.
 
 Usage:
-  MODEL=<openai|anthropic|google|openrouter> bin/run-crawler
+  MODEL=<openai|anthropic|google> bin/run-crawler
 
 The script reads GITHUB_API_TOKEN from .env at the repository root and sends a
 repository_dispatch event to GitHub. It never prints the token.
@@ -25,7 +25,7 @@ fi
 MODEL="${MODEL:-}"
 
 case "$MODEL" in
-  openai|anthropic|google|openrouter)
+  openai|anthropic|google)
     ;;
   '')
     echo "MODEL is required." >&2
@@ -34,7 +34,7 @@ case "$MODEL" in
     ;;
   *)
     echo "Unsupported MODEL: $MODEL" >&2
-    echo "Supported values: openai, anthropic, google, openrouter." >&2
+    echo "Supported values: openai, anthropic, google." >&2
     exit 1
     ;;
 esac

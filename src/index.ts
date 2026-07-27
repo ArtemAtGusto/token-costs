@@ -11,5 +11,4 @@ export * from './crawlers/base.js';
 export { OpenAICrawler } from './crawlers/openai/index.js';
 export { AnthropicCrawler } from './crawlers/anthropic/index.js';
 export { GoogleCrawler } from './crawlers/google/index.js';
-export { OpenRouterCrawler, OpenRouterBatchCrawler } from './crawlers/openrouter/index.js';
 export { runKnock } from './knock.js';
