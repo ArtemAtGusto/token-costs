@@ -128,7 +128,7 @@ export interface CostClientOptions {
 
   /**
    * Base URL for fetching pricing data (ignored if offline: true)
-   * @default 'https://raw.githubusercontent.com/mikkotikkanen/token-costs/main/docs/api/v1'
+   * @default 'https://raw.githubusercontent.com/ArtemAtGusto/token-costs/main/docs/api/v1'
    */
   baseUrl?: string;
 

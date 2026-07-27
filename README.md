@@ -2,6 +2,8 @@
 
 Daily-updated LLM pricing data for OpenAI, Anthropic, Google, and OpenRouter.
 
+> This repository is a fork of [mikkotikkanen/token-costs](https://github.com/mikkotikkanen/token-costs) and retains the original MIT license and copyright notice.
+
 ## What Is This?
 
 An npm package and JSON API that gives you up-to-date token pricing for major LLM providers. Stop hardcoding prices or manually checking pricing pages.
@@ -30,7 +32,7 @@ const orPricing = await client.getModelPricing('openrouter', 'anthropic/claude-3
 
 Or fetch directly without dependencies:
 ```javascript
-const data = await fetch('https://mikkotikkanen.github.io/token-costs/api/v1/openai.json')
+const data = await fetch('https://artematgusto.github.io/token-costs/api/v1/openai.json')
   .then(r => r.json());
 ```
 
@@ -81,7 +83,7 @@ const offlineClient = new CostClient({
 
 ## Documentation
 
-Full usage guide, API reference, and data formats: **[mikkotikkanen.github.io/token-costs](https://mikkotikkanen.github.io/token-costs)**
+Full usage guide, API reference, and data formats: **[artematgusto.github.io/token-costs](https://artematgusto.github.io/token-costs)**
 
 ## What's Included
 
@@ -102,7 +104,7 @@ token-costs/
 Found incorrect pricing? Want to add a provider? Contributions welcome!
 
 ```bash
-git clone https://github.com/mikkotikkanen/token-costs
+git clone https://github.com/ArtemAtGusto/token-costs
 cd token-costs
 npm install
 npm run build
@@ -113,7 +115,7 @@ See [AGENTS.md](AGENTS.md) for development details.
 
 ## For LLM Providers
 
-We'd prefer not to scrape. Consider publishing `/llm_prices.json` on your website - a simple standard format that tools can fetch directly. See the [full proposal](https://mikkotikkanen.github.io/token-costs/#proposal) on the documentation site.
+We'd prefer not to scrape. Consider publishing `/llm_prices.json` on your website - a simple standard format that tools can fetch directly. See the [full proposal](https://artematgusto.github.io/token-costs/#proposal) on the documentation site.
 
 ## License
 
