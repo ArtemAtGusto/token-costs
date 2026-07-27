@@ -78,7 +78,7 @@ export function getCurrentSnapshot(
 
   return {
     provider: history.provider,
-    date: history.lastCrawled,
+    date: history.lastUpdated,
     models: Array.from(modelsMap.values()),
   };
 }
@@ -170,7 +170,7 @@ export async function updateProviderPrices(
 
     history = {
       provider,
-      lastCrawled: now,
+      lastUpdated: now,
       pricingUrl,
       changes,
     };
@@ -183,11 +183,12 @@ export async function updateProviderPrices(
   const currentSnapshot = getCurrentSnapshot(history);
   const changes = detectChanges(currentSnapshot.models, newPrices, today);
 
-  if (changes.length > 0) {
-    history.changes.push(...changes);
+  if (changes.length === 0) {
+    return changes;
   }
 
-  history.lastCrawled = now;
+  history.changes.push(...changes);
+  history.lastUpdated = now;
   await writeProviderHistory(history);
 
   return changes;
@@ -200,7 +201,7 @@ export async function getProvidersSummary(): Promise<
   Array<{
     provider: string;
     modelCount: number;
-    lastCrawled: string;
+    lastUpdated: string;
     totalChanges: number;
   }>
 > {
@@ -216,7 +217,7 @@ export async function getProvidersSummary(): Promise<
       summaries.push({
         provider: history.provider,
         modelCount: snapshot.models.length,
-        lastCrawled: history.lastCrawled,
+        lastUpdated: history.lastUpdated,
         totalChanges: history.changes.length,
       });
     }

@@ -1,6 +1,6 @@
 {
   "provider": "openai",
-  "lastCrawled": "2026-07-27T17:24:22.992Z",
+  "lastUpdated": "2026-07-27T17:24:22.992Z",
   "pricingUrl": "https://platform.openai.com/docs/pricing",
   "changes": [
     {
