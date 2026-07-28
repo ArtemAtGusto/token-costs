@@ -37,11 +37,6 @@ export class GoogleCrawler extends BaseCrawler {
       // Find the position of this model ID in the HTML
       const codePos = codeMatch.index || 0;
 
-      // Look backwards to find the h2 heading
-      const beforeCode = html.substring(Math.max(0, codePos - 500), codePos);
-      const h2Match = beforeCode.match(/<h2[^>]*>([^<]+)<\/h2>\s*$/i) ||
-                      beforeCode.match(/<h2[^>]*>.*?([^>]+)<\/h2>\s*<em/i);
-
       // Look forward to find the pricing table (within next 5000 chars or until next h2)
       const afterCode = html.substring(codePos, Math.min(html.length, codePos + 5000));
       const nextH2Pos = afterCode.search(/<h2[^>]*>/i);

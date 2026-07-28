@@ -86,33 +86,3 @@ export function runCrawlerFromCli(crawler: BaseCrawler, scriptIdentifier: string
     console.log(`Successfully crawled ${result.prices.length} models`);
   });
 }
-
-/**
- * Parse a price string like "$0.50" or "0.50" to a number
- * Extracts the first price-like number from the string
- */
-export function parsePrice(priceStr: string): number {
-  // First try to match a price pattern like $1.00 or 1.00
-  const priceMatch = priceStr.match(/\$?\s*(-?[\d,]+(?:\.\d+)?)/);
-  if (priceMatch) {
-    // Remove commas and parse
-    return parseFloat(priceMatch[1].replace(/,/g, ''));
-  }
-  // Fallback: remove $ and any other non-numeric characters except . and -
-  const cleaned = priceStr.replace(/[^0-9.\-]/g, '');
-  return parseFloat(cleaned);
-}
-
-/**
- * Convert price per 1K tokens to price per 1M tokens
- */
-export function pricePerKToPerM(pricePerK: number): number {
-  return pricePerK * 1000;
-}
-
-/**
- * Convert price per token to price per 1M tokens
- */
-export function pricePerTokenToPerM(pricePerToken: number): number {
-  return pricePerToken * 1_000_000;
-}

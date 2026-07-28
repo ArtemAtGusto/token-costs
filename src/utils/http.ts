@@ -45,23 +45,6 @@ export async function fetchHtml(url: string): Promise<string> {
 }
 
 /**
- * Fetch JSON content from a URL
- */
-export async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetchWithUserAgent(url, {
-    headers: {
-      'Accept': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json() as Promise<T>;
-}
-
-/**
  * Sleep for a given number of milliseconds
  * Used for rate limiting between requests
  */

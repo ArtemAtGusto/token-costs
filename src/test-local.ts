@@ -5,8 +5,6 @@
  * This script runs each crawler with mock data to validate the parsing logic works.
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { OpenAICrawler } from './crawlers/openai/index.js';
 import { AnthropicCrawler } from './crawlers/anthropic/index.js';
 import { GoogleCrawler } from './crawlers/google/index.js';

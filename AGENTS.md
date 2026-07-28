@@ -1,329 +1,97 @@
 # Token Costs - Development Guide
 
-## Documentation Audiences
+## Project
 
-| File | Audience | Purpose |
-|------|----------|---------|
-| `README.md` | npm/GitHub visitors | Sales pitch, quick overview, installation, links to docs |
-| `docs/index.html` | Users implementing the module | Full manual: API reference, usage examples, data formats |
-| `AGENTS.md` | Developers/agents working on this project | Architecture, how to contribute, internal details |
+This repository contains crawlers for OpenAI, Anthropic, and Google LLM pricing.
+It is not an npm library or a hosted JSON API.
 
----
+## Data flow
 
-## Quick Reference
+```text
+Provider pricing pages
+  -> src/crawlers/{provider}
+  -> docs/api/v1/{provider}.json
+  -> history/{provider}/{date}.json
+  -> automated pull request
+```
 
-**What:** NPM package + JSON API for LLM token pricing (OpenAI, Anthropic, Google)
+- `docs/api/v1/*.json` contains the current normalized provider snapshots.
+- `history/{provider}/*.json` contains complete prior snapshots.
+- Prices are always USD per million tokens.
+- Model IDs must match provider API identifiers.
+- Historical snapshots are append-only.
 
-**How it works:**
-- Crawlers scrape provider pricing pages daily at 00:01 UTC
-- Current snapshots stored in `docs/api/v1/*.json`
-- Prior snapshots archived in `history/{provider}/{lastUpdatedAt}.json`
-- GitHub Pages serves API files
-- NPM package fetches + caches API data
+## Key commands
 
-**Key commands:**
 ```bash
-npm run build              # Compile TypeScript
-npm test                   # Run tests
-npm run crawl:dev:openai   # Build + run OpenAI crawler
-npm run generate:npm       # Generate API files from history
+npm run build
+npm test
+npm run crawl:dev:openai
+npm run crawl:dev:anthropic
+npm run crawl:dev:google
+npm run crawl:dev:all
 ```
 
-**Key files:**
-- `src/crawlers/base.ts` - BaseCrawler class and helper functions
-- `src/npm/client.ts` - CostClient (npm package)
-- `src/utils/storage.ts` - History read/write functions
-- `src/generate-npm-files.ts` - API file generator
-- `src/types.ts` - Internal types (crawlers)
-- `src/npm/types.ts` - Public types (npm package)
+Always build before running a crawler.
 
----
+## Key files
 
-## Branching Workflow
+- `src/crawlers/base.ts` - shared crawler execution
+- `src/crawlers/{provider}/index.ts` - provider-specific parsing
+- `src/crawlers/playwright.ts` - shared browser setup
+- `src/utils/http.ts` - HTTP helpers
+- `src/utils/storage.ts` - snapshot comparison, archival, and writes
+- `src/types.ts` - crawler and snapshot types
+- `src/test-local.ts` - live local crawler harness
+- `.github/workflows/crawl-provider.yml` - reusable crawler workflow
 
-> **CRITICAL: Branches are deleted after PRs are merged.** Before making ANY commits, always verify you're on the correct branch with `git branch`. If you're on an old/merged branch, your commits will be orphaned or lost. When starting new work, ALWAYS create a fresh branch from `origin/main`.
+Tests are co-located with source.
 
-**Every feature/fix should be done in its own branch.** This ensures:
-- Clean git history with clear merge points
-- Ability to revert individual features if needed
-- Easy code review per feature
-- Clear tracking of what each PR introduced
+## Adding a provider
 
-**Branch naming:**
-```
-feat/short-description    # New features
-fix/short-description     # Bug fixes
-docs/short-description    # Documentation changes
-chore/short-description   # Maintenance tasks
-```
+1. Add the provider to `Provider` in `src/types.ts`.
+2. Create `src/crawlers/{provider}/index.ts` and its tests.
+3. Add crawler and local-test scripts to `package.json`.
+4. Add the provider to storage directory initialization and the local harness.
+5. Add `.github/workflows/crawl-{provider}.yml`.
+6. Add an initial `docs/api/v1/{provider}.json` snapshot and history directory.
+7. Build, run focused tests, then run the crawler against the live provider page.
 
-**Workflow:**
+## Branching workflow
+
+Branches are deleted after pull requests merge. Before making commits, verify the
+current branch with `git branch`. Start each feature or fix from current
+`origin/main`.
+
 ```bash
-# 1. Start from latest main
 git fetch origin main
-git checkout -b feat/my-feature origin/main
-
-# 2. Make changes and commit
-git add .
-git commit -m "feat: add my feature"
-
-# 3. Push and create PR
-git push -u origin feat/my-feature
-moi moi/token-costs-agent "Create PR from feat/my-feature to main..."
-
-# 4. After PR is merged, clean up
-git checkout main
-git pull
-git branch -d feat/my-feature
+git checkout -b chore/my-change origin/main
 ```
 
-**Do NOT:**
-- Push multiple unrelated changes in one branch
-- Continue adding commits to a branch after its PR is merged
-- Reuse old branches for new features
-- Start working without first checking which branch you're on (`git branch`)
-- Assume you're on the right branch - ALWAYS verify before committing
+Use one branch per change:
 
----
+- `feat/short-description`
+- `fix/short-description`
+- `docs/short-description`
+- `chore/short-description`
 
-## Commits and Releases
+Do not reuse a merged branch or combine unrelated changes.
 
-We use **conventional commits** for automatic versioning via semantic-release.
+## Commits
 
-**Commit format:**
-```
+Use conventional commits:
+
+```text
 type(scope): description
-
-[optional body]
 ```
 
-**Version bumps:**
-- `fix:` → patch (1.0.x)
-- `feat:` → minor (1.x.0)
-- `feat!:` or `BREAKING CHANGE:` → major (x.0.0)
+Pull request titles should also use conventional commit format.
 
-**Examples:**
-```bash
-git commit -m "fix: handle empty API response in a provider crawler"
-git commit -m "feat: add support for audio pricing"
-git commit -m "feat!: change price format from per-token to per-million"
-```
+## GitHub operations
 
-**Release process:**
-1. Make changes and commit using conventional commits
-2. Create PR to `main` branch
-3. PR is squash-merged → GitHub Actions runs tests, then semantic-release:
-   - Analyzes commits since last release
-   - Determines version bump
-   - Updates package.json version
-   - Publishes to npm with provenance
-   - Creates GitHub release with changelog
-
-> **CRITICAL: PR titles MUST follow conventional commit format.** When PRs are squash-merged, GitHub uses the PR title as the commit message. If the title doesn't follow conventional commits (e.g., `feat: add feature`), semantic-release won't detect the change and no release will be triggered.
->
-> **Good:** `feat: add provider pricing support`
-> **Bad:** `Add provider pricing support`
-
-**Manual release (if needed):**
-```bash
-npm run build && npm test
-npx semantic-release --dry-run  # Preview what would happen
-```
-
----
-
-## Full Development Guide
-
-### Data Flow
-
-```
-Provider Sites → Crawlers → history/{provider}/ prior snapshot → docs/api/v1 current snapshot → GitHub Pages → NPM Package
-```
-
-### Directory Structure
-
-```
-token-costs/
-├── src/
-│   ├── crawlers/              # Price crawlers
-│   │   ├── base.ts            # BaseCrawler class + helpers
-│   │   ├── openai/index.ts
-│   │   ├── anthropic/index.ts
-│   │   ├── google/index.ts
-│   ├── npm/                   # NPM package (published)
-│   │   ├── client.ts          # CostClient class
-│   │   ├── types.ts           # Public TypeScript types
-│   │   └── index.ts           # Package exports
-│   ├── utils/
-│   │   ├── storage.ts         # History file read/write
-│   │   └── http.ts            # Fetch with user-agent
-│   ├── types.ts               # Internal types (crawlers)
-│   └── generate-npm-files.ts  # History → API converter
-├── history/{provider}/        # Prior provider snapshots (committed)
-├── docs/
-│   ├── index.html             # Documentation site
-│   └── api/v1/*.json          # API files (committed)
-└── .github/workflows/         # CI/CD
-```
-
-### NPM Scripts
-
-See `package.json` for full list. Key scripts:
-
-| Script | Description |
-|--------|-------------|
-| `npm run build` | Compile TypeScript |
-| `npm run build:watch` | Compile TypeScript in watch mode |
-| `npm test` | Run tests |
-| `npm run crawl:dev:{provider}` | Build + run single crawler |
-| `npm run crawl:dev:all` | Build + run all crawlers |
-| `npm run test:local` | Test all crawlers locally |
-| `npm run generate:npm` | Generate API files |
-| `npm run generate:npm -- {provider}` | Generate single provider |
-
----
-
-## Crawlers
-
-### Base Crawler
-
-All crawlers extend `BaseCrawler`. See `src/crawlers/base.ts` for:
-- Abstract class definition
-- `parsePrice()` - Parse price strings
-- `pricePerKToPerM()` - Convert $/1K to $/1M
-- `pricePerTokenToPerM()` - Convert $/token to $/1M
-
-### Implementing a Crawler
-
-Reference existing crawlers for patterns:
-- `src/crawlers/openai/index.ts` - HTML scraping with cheerio
-- `src/crawlers/anthropic/index.ts`
-- `src/crawlers/google/index.ts`
-
-Each crawler must:
-1. Extend `BaseCrawler`
-2. Set `provider` and `pricingUrl`
-3. Implement `crawlPrices()` returning `ModelPricing[]`
-
-### Adding a New Provider
-
-1. Create `src/crawlers/{provider}/index.ts` (reference existing crawlers)
-2. Add provider to `Provider` type in `src/types.ts`
-3. Add provider to `Provider` type in `src/npm/types.ts`
-4. Add scripts to `package.json` (reference existing patterns)
-5. Create `.github/workflows/crawl-{provider}.yml` (copy from existing)
-6. Test: `npm run crawl:dev:{provider}`
-
----
-
-## Storage
-
-See `src/utils/storage.ts` for all storage functions:
-- `readProviderHistory()` - Load the current provider snapshot
-- `writeProviderHistory()` - Save the current provider snapshot
-- `archiveProviderSnapshot()` - Copy the prior snapshot into provider history
-- `detectChanges()` - Compare old vs new prices
-- `updateProviderPrices()` - Archive then replace changed snapshots
-
-### Data Formats
-
-**History format** (`history/{provider}/*.json`): Historical files are complete prior API snapshots.
-
-**API format** (`docs/api/v1/*.json`): See `src/npm/types.ts` for `ProviderFile` interface
-
----
-
-## NPM Package
-
-### Published Files
-
-Only `dist/npm/**/*` is published (see `files` in `package.json`)
-
-### Client API
-
-See `src/npm/client.ts` for:
-- `CostClient` class and all methods
-- `ClockMismatchError` class
-- Convenience functions (`getModelPricing`, `calculateCost`)
-
-See `src/npm/types.ts` for all public types.
-
----
-
-## Testing
-
-Test files are co-located with source:
-- `src/crawlers/base.test.ts`
-- `src/utils/storage.test.ts`
-- `src/npm/client.test.ts`
+Use the moi CLI instead of `gh`.
 
 ```bash
-npm test              # All tests
-npm run test:watch    # Watch mode
-npm run test:local    # Test crawlers against live sites
+moi list
+moi moi/token-costs-agent "<message>"
 ```
-
----
-
-## GitHub Actions
-
-See `.github/workflows/` for:
-- `crawl-{provider}.yml` - Daily crawl (00:01 UTC)
-- `test.yml` - CI tests
-- `release.yml` - npm publish via semantic-release
-
-Crawl workflow steps:
-1. Checkout, setup Node, install deps, build
-2. Run crawler
-3. Generate npm data for that provider
-4. Commit and push `history/` and `docs/`
-
----
-
-## Future Work
-
-### /llm_prices.json Support
-
-See TODO comment in `src/crawlers/base.ts`. Plan:
-1. Check for `/llm_prices.json` on provider site first
-2. If found, use directly
-3. If not found, fall back to scraping
-
-### Multimodal Pricing
-
-See `src/npm/types.ts` for `image`, `audio`, `video` fields in `ModelPricing`. Types exist but crawlers don't collect this yet.
-
----
-
-## Moi Subagents
-
-Use moi CLI for GitHub operations (PRs, issues, etc.) instead of `gh` CLI.
-
-**Getting started:**
-```bash
-moi list                              # Always start here - list available agents
-moi moi/token-costs-agent "<message>" # Execute GitHub operations
-```
-
-**Examples:**
-```bash
-# Create a PR
-moi moi/token-costs-agent "Create a pull request from branch feat/my-feature to main with title 'feat: add feature' and body '## Summary\n- Added feature'"
-
-# Check PR status
-moi moi/token-costs-agent "Get the status of PR #1"
-
-# Merge a PR
-moi moi/token-costs-agent "Merge PR #1"
-```
-
----
-
-## Important Notes
-
-- Always `npm run build` before testing crawlers
-- NPM package has zero runtime dependencies - keep it that way
-- Prices are always per million tokens in USD
-- Model IDs must match provider API identifiers
-- History files are append-only (changes never deleted)
-- API files are regenerated from history
