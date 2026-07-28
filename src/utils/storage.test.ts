@@ -4,6 +4,7 @@ import * as path from 'path';
 import {
   archiveProviderSnapshot,
   detectChanges,
+  getPacificDate,
   pricesToSnapshot,
   readProviderHistory,
   snapshotToPrices,
@@ -30,6 +31,11 @@ describe('snapshot storage', () => {
     cachedInputPricePerMillion: 15,
     cacheWritePricePerMillion: 0,
   }];
+
+  it('uses Pacific calendar dates across the UTC day boundary', () => {
+    expect(getPacificDate(new Date('2026-07-28T06:59:59Z'))).toBe('2026-07-27');
+    expect(getPacificDate(new Date('2026-07-28T07:00:00Z'))).toBe('2026-07-28');
+  });
 
   it('uses a one-million-token price unit in snapshots', () => {
     const snapshot = pricesToSnapshot(originalPrices, '2026-07-20');
