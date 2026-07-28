@@ -71,8 +71,6 @@ bin/run-crawler     Manual workflow trigger
 .github/workflows/  Tests and scheduled crawler jobs
 ```
 
-See [AGENTS.md](AGENTS.md) for contribution and architecture details.
-
 ## License
 
 MIT
