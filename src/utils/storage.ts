@@ -6,6 +6,22 @@ import type { ModelPricing as PublicModelPricing, ProviderFile } from '../npm/ty
 const HISTORY_DIR = path.join(process.cwd(), 'history');
 const API_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
 const PER_TOKEN_AMOUNT = 1_000_000;
+const PACIFIC_TIME_ZONE = 'America/Los_Angeles';
+
+/** Format a calendar date in the project's Pacific time zone. */
+export function getPacificDate(date: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: PACIFIC_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const part = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find(item => item.type === type)?.value ?? '';
+
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
 
 function getProviderFilePath(provider: Provider): string {
   return path.join(API_DIR, `${provider}.json`);
@@ -137,7 +153,7 @@ export async function updateProviderPrices(
   _pricingUrl: string,
   newPrices: ModelPricing[]
 ): Promise<PriceChange[]> {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getPacificDate();
   const current = await readProviderHistory(provider);
 
   if (!current) {
