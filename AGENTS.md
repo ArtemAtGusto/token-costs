@@ -86,12 +86,3 @@ type(scope): description
 ```
 
 Pull request titles should also use conventional commit format.
-
-## GitHub operations
-
-Use the moi CLI instead of `gh`.
-
-```bash
-moi list
-moi moi/token-costs-agent "<message>"
-```
