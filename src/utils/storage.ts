@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { ModelPricing, PriceChange, Provider } from '../types.js';
-import type { ModelPricing as PublicModelPricing, ProviderFile } from '../npm/types.js';
+import type { ProviderFile, SnapshotModelPricing } from '../types.js';
 
 const PRICES_DIR = path.join(process.cwd(), 'prices');
 const HISTORY_DIR = path.join(PRICES_DIR, 'history');
@@ -73,7 +73,7 @@ export function snapshotToPrices(snapshot: ProviderFile): ModelPricing[] {
 
 /** Convert crawler pricing to the public snapshot format. */
 export function pricesToSnapshot(prices: ModelPricing[], lastUpdatedAt: string): ProviderFile {
-  const models: Record<string, PublicModelPricing> = {};
+  const models: Record<string, SnapshotModelPricing> = {};
 
   for (const price of [...prices].sort((a, b) => a.modelId.localeCompare(b.modelId))) {
     models[price.modelId] = {

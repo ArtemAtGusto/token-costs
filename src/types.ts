@@ -21,6 +21,27 @@ export interface ModelPricing {
 }
 
 /**
+ * Pricing data stored for a single model in provider snapshots.
+ */
+export interface SnapshotModelPricing {
+  input?: number;
+  output?: number;
+  cached?: number;
+  cacheWrite?: number;
+  context?: number;
+  maxOutput?: number;
+}
+
+/**
+ * Current provider pricing snapshot written by crawlers.
+ */
+export interface ProviderFile {
+  lastUpdatedAt: string;
+  perTokenAmount: number;
+  models: Record<string, SnapshotModelPricing>;
+}
+
+/**
  * Represents a price change event
  */
 export interface PriceChange {
