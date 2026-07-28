@@ -14,7 +14,9 @@ jobs:
   crawl-and-publish:
     uses: ./.github/workflows/crawl-provider.yml
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     with:
       provider: anthropic
+      crawler_app_client_id: ${{ vars.CRAWLER_APP_CLIENT_ID }}
+    secrets:
+      crawler_app_private_key: ${{ secrets.CRAWLER_APP_PRIVATE_KEY }}
