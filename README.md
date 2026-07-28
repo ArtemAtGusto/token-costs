@@ -1,91 +1,50 @@
-# Token Costs
+# Token Costs Crawlers
 
-Daily-updated LLM pricing data for OpenAI, Anthropic, and Google.
+Automated crawlers that track LLM token pricing for OpenAI, Anthropic, and Google.
 
 > This repository is a fork of [mikkotikkanen/token-costs](https://github.com/mikkotikkanen/token-costs) and retains the original MIT license and copyright notice.
 
-## What Is This?
+## How it works
 
-An npm package and JSON API that gives you up-to-date token pricing for major LLM providers. Stop hardcoding prices or manually checking pricing pages.
+Each provider crawler:
 
-```typescript
-import { CostClient } from 'token-costs';
+1. Reads the provider's public pricing page.
+2. Normalizes prices to USD per million tokens.
+3. Compares the result with the provider's current file in `docs/api/v1/`.
+4. Archives the prior snapshot in `history/{provider}/` when prices change.
+5. Opens a pull request containing only the provider's price changes.
 
-// Create a client (fetches from remote API)
-const client = new CostClient();
+Scheduled GitHub Actions runs start daily at 00:01 UTC.
 
-// Get pricing for a model
-const result = await client.getModelPricing('openai', 'gpt-4o');
-console.log(`Input: $${result.pricing.input}/M tokens`);
-console.log(`Output: $${result.pricing.output}/M tokens`);
+## Development
 
-// Calculate cost for an API call
-const cost = await client.calculateCost('anthropic', 'claude-sonnet-4', {
-  inputTokens: 1500,
-  outputTokens: 800,
-});
-console.log(`Total cost: $${cost.totalCost.toFixed(6)}`);
-
-```
-
-Or fetch directly without dependencies:
-```javascript
-const data = await fetch('https://artematgusto.github.io/token-costs/api/v1/openai.json')
-  .then(r => r.json());
-```
-
-## Features
-
-- **Daily updates** - Crawled automatically at 00:01 UTC
-- **3 providers** - OpenAI, Anthropic, Google
-- **Custom providers** - Add your own models or override pricing
-- **Offline mode** - Work without network access using custom data
-- **Zero dependencies** - npm package has no runtime dependencies
-- **TypeScript** - Full type definitions included
-- **Caching** - Fetches once per day, caches automatically
-- **Stale detection** - Know when data might be outdated
-
-## Installation
+Requires Node.js 26 or newer.
 
 ```bash
-npm install token-costs
+npm install
+npm run build
+npm test
 ```
 
-## Custom Providers & Offline Mode
+Run one crawler locally:
 
-Add custom models or use entirely custom pricing data:
-
-```typescript
-// Add custom models alongside remote data
-const client = new CostClient({
-  customProviders: {
-    'my-company': {
-      'internal-llm': { input: 0.50, output: 1.00 }
-    },
-    'openai': {
-      'gpt-4-custom': { input: 25, output: 50 } // Override/add to openai
-    }
-  }
-});
-
-// Offline mode - no remote fetching
-const offlineClient = new CostClient({
-  offline: true,
-  customProviders: {
-    'openai': {
-      'gpt-4o': { input: 2.5, output: 10 }
-    }
-  }
-});
+```bash
+npm run crawl:dev:openai
+npm run crawl:dev:anthropic
+npm run crawl:dev:google
 ```
 
-## Documentation
+Run every crawler:
 
-Full usage guide, API reference, and data formats: **[artematgusto.github.io/token-costs](https://artematgusto.github.io/token-costs)**
+```bash
+npm run crawl:dev:all
+```
 
-## Manually Run a Price Crawler
+Crawler runs can access live provider pages and update files under `docs/api/v1/` and `history/`.
 
-Only repository administrators can manually run workflows at this time. To request a crawler run from the trusted default branch, create a local `.env` file from the example and add a GitHub API token:
+## Manually trigger a crawler workflow
+
+Only repository administrators can manually request workflows. Create a local `.env` from the example and add a GitHub API token:
 
 ```bash
 cp env.example .env
@@ -93,38 +52,20 @@ cp env.example .env
 MODEL=openai bin/run-crawler
 ```
 
-Supported `MODEL` values are `openai`, `anthropic`, and `google`. The script reads the token only from `.env`, requests the corresponding default-branch GitHub Actions workflow, and never prints the token.
+Supported `MODEL` values are `openai`, `anthropic`, and `google`.
 
-## What's Included
+## Repository layout
 
-```
-token-costs/
-├── CostClient        # Main client class with caching
-└── TypeScript types     # Full type definitions
-```
-
-**API Endpoints** (JSON):
-- `api/v1/openai.json`
-- `api/v1/anthropic.json`
-- `api/v1/google.json`
-
-## Contributing
-
-Found incorrect pricing? Want to add a provider? Contributions welcome!
-
-```bash
-git clone https://github.com/ArtemAtGusto/token-costs
-cd token-costs
-npm install
-npm run build
-npm test
+```text
+src/crawlers/       Provider crawlers and shared crawler code
+src/utils/          HTTP and snapshot storage helpers
+docs/api/v1/        Current provider snapshots
+history/            Archived provider snapshots
+bin/run-crawler     Manual workflow trigger
+.github/workflows/  Tests and scheduled crawler jobs
 ```
 
-See [AGENTS.md](AGENTS.md) for development details.
-
-## For LLM Providers
-
-We'd prefer not to scrape. Consider publishing `/llm_prices.json` on your website - a simple standard format that tools can fetch directly. See the [full proposal](https://artematgusto.github.io/token-costs/#proposal) on the documentation site.
+See [AGENTS.md](AGENTS.md) for contribution and architecture details.
 
 ## License
 

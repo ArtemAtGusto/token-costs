@@ -18,8 +18,6 @@ export interface ModelPricing {
   contextWindow?: number;
   /** Maximum output tokens (if available) */
   maxOutputTokens?: number;
-  /** Any additional metadata */
-  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -56,13 +54,3 @@ export interface CrawlResult {
  * Supported providers
  */
 export type Provider = 'openai' | 'anthropic' | 'google';
-
-/**
- * Provider configuration
- */
-export interface ProviderConfig {
-  name: Provider;
-  pricingUrl: string;
-  /** Whether this provider requires multiple crawl runs */
-  requiresMultipleRuns?: boolean;
-}

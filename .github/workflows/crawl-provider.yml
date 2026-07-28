@@ -49,9 +49,6 @@ jobs:
       - name: Run provider crawler
         run: npm run crawl:${{ inputs.provider }}
 
-      - name: Generate npm data
-        run: npm run generate:npm -- ${{ inputs.provider }}
-
       - name: Package allowlisted changes
         id: changes
         run: |
