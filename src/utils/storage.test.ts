@@ -13,7 +13,7 @@ import {
 import type { ModelPricing } from '../types.js';
 
 const historyDate = '2099-01-01';
-const historyDirectory = path.join(process.cwd(), 'history', 'openai');
+const historyDirectory = path.join(process.cwd(), 'prices', 'history', 'openai');
 
 afterEach(async () => {
   await Promise.all([
@@ -71,10 +71,10 @@ describe('snapshot storage', () => {
 
   it('archives the current provider file before writing changed prices', async () => {
     const provider = 'google' as const;
-    const currentPath = path.join(process.cwd(), 'docs', 'api', 'v1', `${provider}.json`);
+    const currentPath = path.join(process.cwd(), 'prices', `${provider}.json`);
     const original = await fs.readFile(currentPath, 'utf-8');
     const snapshot = JSON.parse(original);
-    const before = new Set(await fs.readdir(path.join(process.cwd(), 'history', provider)));
+    const before = new Set(await fs.readdir(path.join(process.cwd(), 'prices', 'history', provider)));
     const [modelId, model] = Object.entries(snapshot.models)[0] as [string, { input: number; output: number }];
 
     try {
@@ -88,15 +88,15 @@ describe('snapshot storage', () => {
       expect(changes).toHaveLength(Object.keys(snapshot.models).length);
       expect((await readProviderHistory(provider))?.models[modelId].input).toBe(model.input + 1);
 
-      const after = await fs.readdir(path.join(process.cwd(), 'history', provider));
+      const after = await fs.readdir(path.join(process.cwd(), 'prices', 'history', provider));
       const archive = after.find(file => !before.has(file));
       expect(archive).toBeDefined();
-      const archived = JSON.parse(await fs.readFile(path.join(process.cwd(), 'history', provider, archive!), 'utf-8'));
+      const archived = JSON.parse(await fs.readFile(path.join(process.cwd(), 'prices', 'history', provider, archive!), 'utf-8'));
       expect(archived).toEqual(snapshot);
     } finally {
       await fs.writeFile(currentPath, original);
-      const after = await fs.readdir(path.join(process.cwd(), 'history', provider));
-      await Promise.all(after.filter(file => !before.has(file)).map(file => fs.rm(path.join(process.cwd(), 'history', provider, file))));
+      const after = await fs.readdir(path.join(process.cwd(), 'prices', 'history', provider));
+      await Promise.all(after.filter(file => !before.has(file)).map(file => fs.rm(path.join(process.cwd(), 'prices', 'history', provider, file))));
     }
   });
 });
