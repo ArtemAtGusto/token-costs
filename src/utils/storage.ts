@@ -3,8 +3,8 @@ import * as path from 'path';
 import { ModelPricing, PriceChange, Provider } from '../types.js';
 import type { ModelPricing as PublicModelPricing, ProviderFile } from '../npm/types.js';
 
-const HISTORY_DIR = path.join(process.cwd(), 'history');
-const API_DIR = path.join(process.cwd(), 'docs', 'api', 'v1');
+const PRICES_DIR = path.join(process.cwd(), 'prices');
+const HISTORY_DIR = path.join(PRICES_DIR, 'history');
 const PER_TOKEN_AMOUNT = 1_000_000;
 const PACIFIC_TIME_ZONE = 'America/Los_Angeles';
 
@@ -24,7 +24,7 @@ export function getPacificDate(date: Date = new Date()): string {
 }
 
 function getProviderFilePath(provider: Provider): string {
-  return path.join(API_DIR, `${provider}.json`);
+  return path.join(PRICES_DIR, `${provider}.json`);
 }
 
 function getProviderHistoryDir(provider: Provider): string {
@@ -33,7 +33,7 @@ function getProviderHistoryDir(provider: Provider): string {
 
 /** Ensure provider history directories exist. */
 export async function ensureDataDirs(): Promise<void> {
-  await fs.mkdir(API_DIR, { recursive: true });
+  await fs.mkdir(PRICES_DIR, { recursive: true });
   await Promise.all(
     (['openai', 'anthropic', 'google'] as Provider[]).map(provider =>
       fs.mkdir(getProviderHistoryDir(provider), { recursive: true })

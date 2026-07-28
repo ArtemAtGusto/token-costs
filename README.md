@@ -10,8 +10,8 @@ Each provider crawler:
 
 1. Reads the provider's public pricing page.
 2. Normalizes prices to USD per million tokens.
-3. Compares the result with the provider's current file in `docs/api/v1/`.
-4. Archives the prior snapshot in `history/{provider}/` when prices change.
+3. Compares the result with the provider's current file in `prices/`.
+4. Archives the prior snapshot in `prices/history/{provider}/` when prices change.
 5. Opens a pull request containing only the provider's price changes.
 
 Scheduled GitHub Actions runs start daily at 00:01 UTC.
@@ -40,7 +40,7 @@ Run every crawler:
 npm run crawl:dev:all
 ```
 
-Crawler runs can access live provider pages and update files under `docs/api/v1/` and `history/`.
+Crawler runs can access live provider pages and update files under `prices/`.
 
 ## Manually trigger a crawler workflow
 
@@ -59,8 +59,8 @@ Supported `MODEL` values are `openai`, `anthropic`, and `google`.
 ```text
 src/crawlers/       Provider crawlers and shared crawler code
 src/utils/          HTTP and snapshot storage helpers
-docs/api/v1/        Current provider snapshots
-history/            Archived provider snapshots
+prices/             Current provider snapshots
+prices/history/     Archived provider snapshots
 bin/run-crawler     Manual workflow trigger
 .github/workflows/  Tests and scheduled crawler jobs
 ```

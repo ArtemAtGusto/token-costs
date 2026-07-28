@@ -10,13 +10,13 @@ It is not an npm library or a hosted JSON API.
 ```text
 Provider pricing pages
   -> src/crawlers/{provider}
-  -> docs/api/v1/{provider}.json
-  -> history/{provider}/{date}.json
+  -> prices/{provider}.json
+  -> prices/history/{provider}/{date}.json
   -> automated pull request
 ```
 
-- `docs/api/v1/*.json` contains the current normalized provider snapshots.
-- `history/{provider}/*.json` contains complete prior snapshots.
+- `prices/*.json` contains the current normalized provider snapshots.
+- `prices/history/{provider}/*.json` contains complete prior snapshots.
 - Prices are always USD per million tokens.
 - Model IDs must match provider API identifiers.
 - Historical snapshots are append-only.
@@ -54,7 +54,7 @@ Tests are co-located with source.
 3. Add crawler and local-test scripts to `package.json`.
 4. Add the provider to storage directory initialization and the local harness.
 5. Add `.github/workflows/crawl-{provider}.yml`.
-6. Add an initial `docs/api/v1/{provider}.json` snapshot and history directory.
+6. Add an initial `prices/{provider}.json` snapshot and history directory.
 7. Build, run focused tests, then run the crawler against the live provider page.
 
 ## Branching workflow
