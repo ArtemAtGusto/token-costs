@@ -1,6 +1,6 @@
 {
   "name": "token-costs",
-  "version": "3.0.0",
+  "version": "1.0.0",
   "description": "Crawlers for tracking LLM token pricing",
   "private": true,
   "type": "module",
@@ -29,10 +29,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mikkotikkanen/token-costs.git"
+    "url": "git+https://github.com/ArtemAtGusto/token-costs.git"
   },
   "bugs": {
-    "url": "https://github.com/mikkotikkanen/token-costs/issues"
+    "url": "https://github.com/ArtemAtGusto/token-costs/issues"
   },
   "keywords": [
     "llm",
@@ -46,7 +46,7 @@
     "tokens",
     "cost"
   ],
-  "author": "Mikko Tikkanen",
+  "author": "Artem Borovenskyi",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.10.0",

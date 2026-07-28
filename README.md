@@ -2,7 +2,13 @@
 
 Automated crawlers that track LLM token pricing for OpenAI, Anthropic, and Google.
 
-> This repository is a fork of [mikkotikkanen/token-costs](https://github.com/mikkotikkanen/token-costs) and retains the original MIT license and copyright notice.
+Current pricing data:
+
+- [OpenAI](prices/openai.json)
+- [Anthropic](prices/anthropic.json)
+- [Google](prices/google.json)
+
+Each snapshot records prices in USD per million tokens and the date it was last updated.
 
 ## How it works
 
