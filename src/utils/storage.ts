@@ -75,7 +75,7 @@ export function snapshotToPrices(snapshot: ProviderFile): ModelPricing[] {
 export function pricesToSnapshot(prices: ModelPricing[], lastUpdatedAt: string): ProviderFile {
   const models: Record<string, PublicModelPricing> = {};
 
-  for (const price of prices) {
+  for (const price of [...prices].sort((a, b) => a.modelId.localeCompare(b.modelId))) {
     models[price.modelId] = {
       input: price.inputPricePerMillion,
       output: price.outputPricePerMillion,

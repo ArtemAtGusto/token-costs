@@ -50,6 +50,18 @@ describe('snapshot storage', () => {
     expect(snapshotToPrices(snapshot)).toEqual([{ ...originalPrices[0], modelName: 'gpt-4' }]);
   });
 
+  it('sorts models by name in snapshots without mutating crawler results', () => {
+    const prices = [
+      { ...originalPrices[0], modelId: 'gpt-5', modelName: 'GPT-5' },
+      { ...originalPrices[0], modelId: 'gpt-4.1', modelName: 'GPT-4.1' },
+    ];
+
+    const snapshot = pricesToSnapshot(prices, '2026-07-20');
+
+    expect(Object.keys(snapshot.models)).toEqual(['gpt-4.1', 'gpt-5']);
+    expect(prices.map(price => price.modelId)).toEqual(['gpt-5', 'gpt-4.1']);
+  });
+
   it('detects price updates', () => {
     const changes = detectChanges(originalPrices, [{ ...originalPrices[0], inputPricePerMillion: 25 }], '2026-07-27');
 
