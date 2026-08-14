@@ -1,5 +1,5 @@
 {
-  "lastUpdatedAt": "2026-08-13",
+  "lastUpdatedAt": "2026-07-28",
   "perTokenAmount": 1000000,
   "models": {
     "gemini-2.0-flash": {
@@ -66,13 +66,8 @@
       "cached": 14
     },
     "gemini-3.6-flash": {
-      "input": 14,
-      "output": 14,
-      "cached": 14
-    },
-    "gemini-3.7-flash": {
-      "input": 14,
-      "output": 14,
+      "input": 1.5,
+      "output": 7.5,
       "cached": 14
     }
   }
