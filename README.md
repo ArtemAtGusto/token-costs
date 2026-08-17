@@ -1,20 +1,20 @@
 # Token Costs Crawlers
 
-Automated crawlers that track LLM token pricing for OpenAI and Anthropic.
+Automated crawlers that track LLM token pricing for OpenAI, Anthropic, and Google.
 
-> **Google support:** Google crawling is not supported for now, and there are no plans to fix it. The existing Google snapshot is retained for reference.
+> Google is not supported for now, and there are no plans to fix it.
 
 Current pricing data:
 
 - [OpenAI](prices/openai.json)
 - [Anthropic](prices/anthropic.json)
-- [Google (unsupported snapshot)](prices/google.json)
+- [Google](prices/google.json)
 
 Each snapshot records prices in USD per million tokens and the date it was last updated.
 
 ## How it works
 
-Each supported provider crawler:
+Each provider crawler:
 
 1. Reads the provider's public pricing page.
 2. Normalizes prices to USD per million tokens.
@@ -39,9 +39,10 @@ Run one crawler locally:
 ```bash
 npm run crawl:dev:openai
 npm run crawl:dev:anthropic
+npm run crawl:dev:google
 ```
 
-Run every supported crawler:
+Run every crawler:
 
 ```bash
 npm run crawl:dev:all
@@ -59,7 +60,7 @@ cp env.example .env
 MODEL=openai bin/run-crawler
 ```
 
-Supported `MODEL` values are `openai` and `anthropic`.
+Supported `MODEL` values are `openai`, `anthropic`, and `google`.
 
 ## Repository layout
 
