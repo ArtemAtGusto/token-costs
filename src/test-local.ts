@@ -7,7 +7,6 @@
 
 import { OpenAICrawler } from './crawlers/openai/index.js';
 import { AnthropicCrawler } from './crawlers/anthropic/index.js';
-import { GoogleCrawler } from './crawlers/google/index.js';
 import { readProviderHistory } from './utils/storage.js';
 import { Provider } from './types.js';
 
@@ -116,6 +115,11 @@ async function main() {
     return;
   }
 
+  if (provider && provider !== 'openai' && provider !== 'anthropic') {
+    console.error(`Unsupported provider: ${provider}`);
+    process.exit(1);
+  }
+
   const results: TestResult[] = [];
 
   // Run crawlers based on argument or all
@@ -127,11 +131,6 @@ async function main() {
   if (!provider || provider === 'anthropic') {
     const crawler = new AnthropicCrawler();
     results.push(await testCrawler('Anthropic', () => crawler.run()));
-  }
-
-  if (!provider || provider === 'google') {
-    const crawler = new GoogleCrawler();
-    results.push(await testCrawler('Google', () => crawler.run()));
   }
 
   // Summary

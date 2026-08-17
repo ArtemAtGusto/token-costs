@@ -2,7 +2,7 @@
 
 ## Project
 
-This repository contains crawlers for OpenAI, Anthropic, and Google LLM pricing.
+This repository contains crawlers for OpenAI and Anthropic LLM pricing.
 It is not an npm library or a hosted JSON API.
 
 ## Data flow
@@ -28,7 +28,6 @@ npm run build
 npm test
 npm run crawl:dev:openai
 npm run crawl:dev:anthropic
-npm run crawl:dev:google
 npm run crawl:dev:all
 ```
 
