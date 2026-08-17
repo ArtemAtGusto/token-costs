@@ -2,6 +2,8 @@
 
 Automated crawlers that track LLM token pricing for OpenAI, Anthropic, and Google.
 
+> Google is not supported for now, and there are no plans to fix it.
+
 Current pricing data:
 
 - [OpenAI](prices/openai.json)
