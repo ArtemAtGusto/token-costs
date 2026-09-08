@@ -1,5 +1,5 @@
 {
-  "lastUpdatedAt": "2026-09-07",
+  "lastUpdatedAt": "2026-08-23",
   "perTokenAmount": 1000000,
   "models": {
     "babbage-002": {
@@ -174,12 +174,6 @@
       "output": 12,
       "cached": 0.2,
       "cacheWrite": 2.5
-    },
-    "gpt-6-astra": {
-      "input": 10,
-      "output": 50,
-      "cached": 1,
-      "cacheWrite": 12.5
     },
     "o1": {
       "input": 15,
