@@ -1,5 +1,5 @@
 {
-  "lastUpdatedAt": "2026-09-01",
+  "lastUpdatedAt": "2026-09-22",
   "perTokenAmount": 1000000,
   "models": {
     "claude-fable-5": {
@@ -66,6 +66,11 @@
       "input": 5,
       "output": 25,
       "cached": 0.5
+    },
+    "claude-opus-5.5": {
+      "input": 4,
+      "output": 20,
+      "cached": 0.2
     },
     "claude-sonnet-4": {
       "input": 3,
