@@ -1,106 +1,55 @@
 {
-  "lastUpdatedAt": "2026-08-23",
+  "lastUpdatedAt": "2026-11-13",
   "perTokenAmount": 1000000,
   "models": {
-    "babbage-002": {
-      "input": 0.4,
-      "output": 0.4,
-      "cacheWrite": 0
-    },
-    "davinci-002": {
-      "input": 2,
-      "output": 2,
-      "cacheWrite": 0
-    },
-    "gpt-3.5-turbo": {
-      "input": 0.5,
-      "output": 1.5,
-      "cacheWrite": 0
-    },
-    "gpt-3.5-turbo-0125": {
-      "input": 0.5,
-      "output": 1.5,
-      "cacheWrite": 0
-    },
-    "gpt-3.5-turbo-1106": {
-      "input": 1,
-      "output": 2,
-      "cacheWrite": 0
-    },
-    "gpt-3.5-turbo-instruct": {
-      "input": 1.5,
-      "output": 2,
-      "cacheWrite": 0
-    },
-    "gpt-4-0613": {
-      "input": 30,
-      "output": 60,
-      "cacheWrite": 0
-    },
-    "gpt-4-turbo-2024-04-09": {
-      "input": 10,
-      "output": 30,
-      "cacheWrite": 0
-    },
-    "gpt-4.1": {
+    "gpt-4.1-deprecated": {
       "input": 2,
       "output": 8,
       "cached": 0.5,
       "cacheWrite": 0
     },
-    "gpt-4.1-mini": {
+    "gpt-4.1-mini-deprecated": {
       "input": 0.4,
       "output": 1.6,
       "cached": 0.1,
       "cacheWrite": 0
     },
-    "gpt-4.1-nano": {
-      "input": 0.1,
-      "output": 0.4,
-      "cached": 0.025,
-      "cacheWrite": 0
-    },
-    "gpt-4o": {
+    "gpt-4o-deprecated": {
       "input": 2.5,
       "output": 10,
       "cached": 1.25,
       "cacheWrite": 0
     },
-    "gpt-4o-2024-05-13": {
-      "input": 5,
-      "output": 15,
-      "cacheWrite": 0
-    },
-    "gpt-4o-mini": {
+    "gpt-4o-mini-deprecated": {
       "input": 0.15,
       "output": 0.6,
       "cached": 0.075,
       "cacheWrite": 0
     },
-    "gpt-5": {
+    "gpt-5-deprecated": {
       "input": 1.25,
       "output": 10,
       "cached": 0.125,
       "cacheWrite": 0
     },
-    "gpt-5-mini": {
+    "gpt-5-mini-deprecated": {
       "input": 0.25,
       "output": 2,
       "cached": 0.025,
       "cacheWrite": 0
     },
-    "gpt-5-nano": {
+    "gpt-5-nano-deprecated": {
       "input": 0.05,
       "output": 0.4,
       "cached": 0.005,
       "cacheWrite": 0
     },
-    "gpt-5-pro": {
+    "gpt-5-pro-deprecated": {
       "input": 15,
       "output": 120,
       "cacheWrite": 0
     },
-    "gpt-5.1": {
+    "gpt-5.1-deprecated": {
       "input": 1.25,
       "output": 10,
       "cached": 0.125,
@@ -129,7 +78,7 @@
       "cached": 0.075,
       "cacheWrite": 0
     },
-    "gpt-5.4-nano": {
+    "gpt-5.4-nano-deprecated": {
       "input": 0.2,
       "output": 1.25,
       "cached": 0.02,
@@ -151,62 +100,63 @@
       "output": 180,
       "cacheWrite": 0
     },
-    "gpt-5.6-cyber": {
-      "input": 12.5,
-      "output": 75,
-      "cached": 1.25,
-      "cacheWrite": 15.625
-    },
     "gpt-5.6-luna": {
       "input": 0.2,
       "output": 1.2,
       "cached": 0.02,
-      "cacheWrite": 0.25
+      "cacheWrite": 0
     },
     "gpt-5.6-sol": {
       "input": 4,
       "output": 20,
       "cached": 0.4,
-      "cacheWrite": 5
+      "cacheWrite": 0
     },
     "gpt-5.6-terra": {
       "input": 2,
       "output": 12,
       "cached": 0.2,
-      "cacheWrite": 2.5
-    },
-    "o1": {
-      "input": 15,
-      "output": 60,
-      "cached": 7.5,
       "cacheWrite": 0
     },
-    "o1-pro": {
-      "input": 150,
-      "output": 600,
+    "gpt-6-astra": {
+      "input": 10,
+      "output": 50,
+      "cached": 1,
       "cacheWrite": 0
     },
-    "o3": {
+    "gpt-6-luna": {
+      "input": 0.1,
+      "output": 0.5,
+      "cached": 0.01,
+      "cacheWrite": 0
+    },
+    "gpt-6-sol": {
+      "input": 2,
+      "output": 10,
+      "cached": 0.2,
+      "cacheWrite": 0
+    },
+    "gpt-6.1-sol": {
+      "input": 2,
+      "output": 10,
+      "cached": 0.1,
+      "cacheWrite": 0
+    },
+    "gpt-6.1-terra": {
+      "input": 1,
+      "output": 5,
+      "cached": 0.05,
+      "cacheWrite": 0
+    },
+    "o3-deprecated": {
       "input": 2,
       "output": 8,
       "cached": 0.5,
       "cacheWrite": 0
     },
-    "o3-mini": {
-      "input": 1.1,
-      "output": 4.4,
-      "cached": 0.55,
-      "cacheWrite": 0
-    },
-    "o3-pro": {
+    "o3-pro-deprecated": {
       "input": 20,
       "output": 80,
-      "cacheWrite": 0
-    },
-    "o4-mini": {
-      "input": 1.1,
-      "output": 4.4,
-      "cached": 0.275,
       "cacheWrite": 0
     }
   }
